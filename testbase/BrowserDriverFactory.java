@@ -1,4 +1,4 @@
-package com.tribu.seleniumframework.testbase;
+package com.tribu.qaselenium.testframework.testbase;
 
 import org.apache.logging.log4j.Logger;
 import org.openqa.selenium.WebDriver;

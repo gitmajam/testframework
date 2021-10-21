@@ -1,4 +1,4 @@
-package com.tribu.seleniumframework.utilities;
+package com.tribu.qaselenium.testframework.pagebase;
 
 import org.apache.logging.log4j.Logger;
 import org.openqa.selenium.By;

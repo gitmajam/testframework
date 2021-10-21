@@ -1,4 +1,4 @@
-package com.tribu.seleniumframework.testbase;
+package com.tribu.qaselenium.testframework.testbase;
 
 import java.lang.reflect.Method;
 
@@ -50,10 +50,11 @@ public class TestBase extends TestUtilities {
 
 		/* factory creates a new instance of webdriver "browser" */
 		factory.createDriver(browser, log);
-		
-		// pass an attribute to context variable in order to the TestListener can retrieve it
+
+		// pass an attribute to context variable in order to the TestListener can
+		// retrieve it
 		context.setAttribute("driverFactory", factory);
-		
+
 		factory.getDriver().manage().window().maximize();
 	}
 

@@ -1,4 +1,4 @@
-package com.tribu.seleniumframework.testbase;
+package com.tribu.qaselenium.testframework.testbase;
 
 import java.io.File;
 import java.io.IOException;

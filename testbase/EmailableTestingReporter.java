@@ -1,4 +1,4 @@
-package com.tribu.seleniumframework.testbase;
+package com.tribu.qaselenium.testframework.testbase;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.nio.file.Files.newBufferedWriter;

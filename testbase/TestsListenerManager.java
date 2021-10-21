@@ -1,4 +1,4 @@
-package com.tribu.seleniumframework.testbase;
+package com.tribu.qaselenium.testframework.testbase;
 
 import org.openqa.selenium.WebDriver;
 import org.testng.ITestContext;
@@ -9,6 +9,7 @@ import org.testng.Reporter;
 public class TestsListenerManager extends TestUtilities implements ITestListener {
 	WebDriver driver = null;
 	BrowserDriverFactory factory = null;
+
 	@Override
 	public void onTestSuccess(ITestResult result) {
 		Reporter.setCurrentTestResult(result);

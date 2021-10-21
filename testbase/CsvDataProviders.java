@@ -1,4 +1,4 @@
-package com.tribu.seleniumframework.testbase;
+package com.tribu.qaselenium.testframework.testbase;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -20,6 +20,7 @@ import com.opencsv.exceptions.CsvValidationException;
 
 public class CsvDataProviders {
 	protected static Logger log;
+
 	/**
 	 * This method return an iterator of an array list containing all data sets
 	 * found in the CSV file, the array contains HashMap objects and each HashMap
