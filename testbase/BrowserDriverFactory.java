@@ -14,7 +14,7 @@ public class BrowserDriverFactory {
 	private static ChromeOptions getChromeOptions() {
 		ChromeOptions options = new ChromeOptions();
 		options.addArguments("--disable-dev-shm-usage"); // overcome limited resource problems
-		options.addArguments("--no-sandbox");// Bypass OS security model
+		options.addArguments("--no-sandbox");// Bypass OS security models
 		options.addArguments("--headless");
 		return options;
 	}
