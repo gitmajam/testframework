@@ -2,8 +2,7 @@ package com.tribu.qaselenium.testframework.testbase;
 
 import java.lang.reflect.Method;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.openqa.selenium.WebDriver;
 import org.testng.ITestContext;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
@@ -13,64 +12,45 @@ import org.testng.annotations.Parameters;
 
 public class TestBase extends TestUtilities {
 
-	protected Logger log;
-	protected BrowserDriverFactory factory;
-	/*
-	 * private final static EmailableTestingReporter frl = new
-	 * EmailableTestingReporter(); TestNG testng = new TestNG();
-	 * 
-	 * @BeforeSuite(alwaysRun = true) public void setUpReporters(ITestContext ctx) {
-	 * //testng.addListener(frl); testng.setUseDefaultListeners(false); }
-	 */
+	protected DriverFactory driverFactory = null;
+	protected TestLoggerFactory loggerFactory = null;
+	protected WebDriver driver;
+	
 
 	/** create a Browser driver factory it lets run several test in parallel */
 	@BeforeTest(alwaysRun = true)
-	public void createBrowserFactory(ITestContext ctx) {
+	public void createFactories() {
 
-		/*
-		 * this lines create a new instance of a logger to write out the status during
-		 * the script execution
-		 */
-
-		this.testName = ctx.getCurrentXmlTest().getName();
-		this.testSuiteName = ctx.getSuite().getName();
-		log = LogManager.getLogger(testName);
-
-		log.info("Se crea factory");
-		factory = new BrowserDriverFactory();
+		loggerFactory = TestLoggerFactory.getInstance();
+		driverFactory = DriverFactory.getInstance();
 	}
 
 	@Parameters({ "browser" })
 	@BeforeMethod(alwaysRun = true)
 	public void setUp(Method method, @Optional("chrome") String browser, ITestContext context) {
-		/* this variable isn't used */
-		this.testMethodName = method.getName();
 
+		testName = context.getCurrentXmlTest().getName();
+		testSuiteName = context.getSuite().getName();
+		testMethodName = method.getName();
+		
+		/* loggerFactory creates a new instance of logger */
+		loggerFactory.crateLogger(testName);
+		log = loggerFactory.getLogger();
 		log.info("Se ejecuta setup() ");
 
-		/* factory creates a new instance of webdriver "browser" */
-		factory.createDriver(browser, log);
+		/* driverFactory creates a new instance of webdriver "browser" */
+		driverFactory.createDriver(browser, log);
+		driverFactory.getDriver().manage().window().maximize();
 
 		// pass an attribute to context variable in order to the TestListener can
 		// retrieve it
-		context.setAttribute("driverFactory", factory);
-
-		factory.getDriver().manage().window().maximize();
+		context.setAttribute("driverFactory", driverFactory);
 	}
-
-	/*
-	 * @AfterMethod(alwaysRun = true) public void failureSetup(ITestResult result)
-	 * throws IOException { Reporter.setCurrentTestResult(result);
-	 * Reporter.log(" <img src='" + takeScreenshot(factory.getDriver()) +
-	 * "' height='200' width='250'/> "); }
-	 * 
-	 * , dependsOnMethods = "failureSetup"
-	 */
 
 	@AfterMethod(alwaysRun = true)
 	public void tearDown() {
 		// Close browser
-		factory.getDriver().quit();
+		driverFactory.getDriver().quit();
 	}
 
 }

@@ -8,13 +8,13 @@ import org.testng.Reporter;
 
 public class TestsListenerManager extends TestUtilities implements ITestListener {
 	WebDriver driver = null;
-	BrowserDriverFactory factory = null;
+	DriverFactory factory = null;
 
 	@Override
 	public void onTestSuccess(ITestResult result) {
 		Reporter.setCurrentTestResult(result);
 		ITestContext context = result.getTestContext();
-		factory = (BrowserDriverFactory) context.getAttribute("driverFactory");
+		factory = (DriverFactory) context.getAttribute("driverFactory");
 		Reporter.log(" <img src='" + takeScreenshot(factory.getDriver()) + "' height='250' width='300'/> ");
 	}
 
@@ -22,7 +22,7 @@ public class TestsListenerManager extends TestUtilities implements ITestListener
 	public void onTestFailure(ITestResult result) {
 		Reporter.setCurrentTestResult(result);
 		ITestContext context = result.getTestContext();
-		factory = (BrowserDriverFactory) context.getAttribute("driverFactory");
+		factory = (DriverFactory) context.getAttribute("driverFactory");
 		Reporter.log(" <img src='" + takeScreenshot(factory.getDriver()) + "' height='250' width='300'/> ");
 	}
 
@@ -30,7 +30,7 @@ public class TestsListenerManager extends TestUtilities implements ITestListener
 	public void onTestSkipped(ITestResult result) {
 		Reporter.setCurrentTestResult(result);
 		ITestContext context = result.getTestContext();
-		factory = (BrowserDriverFactory) context.getAttribute("driverFactory");
+		factory = (DriverFactory) context.getAttribute("driverFactory");
 		Reporter.log(" <img src='" + takeScreenshot(factory.getDriver()) + "' height='250' width='300'/> ");
 	}
 

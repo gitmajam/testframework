@@ -6,11 +6,21 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.logging.log4j.Logger;
 import org.openqa.selenium.OutputType;
 import org.openqa.selenium.TakesScreenshot;
 import org.openqa.selenium.WebDriver;
 
+import com.tribu.qaselenium.testframework.pagebase.BasePageObject;
+import com.tribu.qaselenium.testframework.pagebase.GeneralUtils;
+
 public class TestUtilities {
+
+	protected Logger log = null;
+	
+	public void setLog(Logger log) {
+		this.log = log;
+	}
 
 	protected String testSuiteName;
 	protected String testName;
@@ -23,6 +33,12 @@ public class TestUtilities {
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
+	}
+
+	public void openUrl(BasePageObject Page, WebDriver driver) {
+		driver.get(Page.getPageUrl());
+		GeneralUtils.waitForPageToLoad(driver, log);
+		log.info("Open Url");
 	}
 
 	/** Take screenshot file png. return path */

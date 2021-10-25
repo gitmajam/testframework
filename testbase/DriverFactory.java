@@ -9,13 +9,33 @@ import org.openqa.selenium.firefox.FirefoxOptions;
 
 import io.github.bonigarcia.wdm.WebDriverManager;
 
-public class BrowserDriverFactory {
+public class DriverFactory {
+	// singleton
+	private volatile static DriverFactory driverFactory = null;
+	private static int contador = 0; // temp
+
+	// private constructor
+	private DriverFactory() {
+		contador = contador + 1;// temp
+		System.out.println("*****driverFactory-counter***** = " + contador);// temp
+	}
+
+	public static DriverFactory getInstance() {
+		if (driverFactory == null) {
+			synchronized (DriverFactory.class) {
+				if (driverFactory == null) {
+					driverFactory = new DriverFactory();
+				}
+			}
+		}
+		return driverFactory;
+	}
 
 	private static ChromeOptions getChromeOptions() {
 		ChromeOptions options = new ChromeOptions();
 		options.addArguments("--disable-dev-shm-usage"); // overcome limited resource problems
 		options.addArguments("--no-sandbox");// Bypass OS security models
-		options.addArguments("--headless");
+		// options.addArguments("--headless");
 		return options;
 	}
 
@@ -27,11 +47,10 @@ public class BrowserDriverFactory {
 
 	/**
 	 * static variable that relates an specific webdriver instance with a thread, it
-	 * is like a dictionary
+	 * is like a dictionary.
 	 */
 
 	private static ThreadLocal<WebDriver> driver = new ThreadLocal<WebDriver>();
-	// static WebDriver driver;
 
 	public void createDriver(String browser, Logger log) {
 		browser.toLowerCase();
@@ -53,7 +72,7 @@ public class BrowserDriverFactory {
 			driver.set(new ChromeDriver(getChromeOptions()));
 			break;
 		}
-		log.info(driver.get().hashCode() + " Factory crea driver");
+		log.info(driver.get().hashCode() + " driverFactory crea driver");
 	}
 
 	/** this method returns the driver related with the current thread */

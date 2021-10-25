@@ -9,13 +9,14 @@ import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
+import com.tribu.qaselenium.testframework.testbase.DriverFactory;
+
 public class GeneralUtils {
 
-	protected WebDriver driver;
 	protected Logger log;
 
 	// Find element using given locator
-	protected WebElement find(By locator) {
+	protected static WebElement find(By locator, WebDriver driver, Logger log) {
 		try {
 			return driver.findElement(locator);
 		} catch (WebDriverException e) {
@@ -41,7 +42,7 @@ public class GeneralUtils {
 			new WebDriverWait(driver, 30).until(webDriver -> ((JavascriptExecutor) webDriver)
 					.executeScript("return document.readyState").equals("complete"));
 		} catch (Exception e) {
-			log.info("waitForPageLoad fail");
+			log.info("WaitForPageLoad timeout");
 			throw (e);
 		}
 	}
