@@ -7,24 +7,25 @@ import java.util.Date;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.logging.log4j.Logger;
+import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.OutputType;
 import org.openqa.selenium.TakesScreenshot;
 import org.openqa.selenium.WebDriver;
 
-import com.tribu.qaselenium.testframework.pagebase.BasePageObject;
-import com.tribu.qaselenium.testframework.pagebase.GeneralUtils;
+import com.google.common.base.Supplier;
+import com.tribu.qaselenium.testframework.pagebase.BasePO;
+import com.tribu.qaselenium.testframework.pagebase.GUtils;
 
 public class TestUtilities {
 
-	protected Logger log = null;
 	
-	public void setLog(Logger log) {
-		this.log = log;
-	}
-
 	protected String testSuiteName;
 	protected String testName;
 	protected String testMethodName;
+	protected Logger log;
+	
+	protected Supplier<WebDriver> driver = () -> DriverFactory.getInstance().getDriver();
+	
 
 	// Static Sleep
 	protected void sleep(long millis) {
@@ -35,15 +36,15 @@ public class TestUtilities {
 		}
 	}
 
-	public void openUrl(BasePageObject Page, WebDriver driver) {
-		driver.get(Page.getPageUrl());
-		GeneralUtils.waitForPageToLoad(driver, log);
-		log.info("Open Url");
+	public <T extends BasePO> Supplier<T> openUrl(Supplier<T> pageSupplier) {
+		driver.get().get(pageSupplier.get().getPageUrl());
+		GUtils.waitForPageToLoad(driver.get());
+		return pageSupplier;
 	}
 
 	/** Take screenshot file png. return path */
-	protected String takeScreenshot(String fileName, WebDriver driver) {
-		File scrFile = ((TakesScreenshot) driver).getScreenshotAs(OutputType.FILE);
+	protected String takeScreenshot(String fileName) {
+		File scrFile = ((TakesScreenshot) driver.get()).getScreenshotAs(OutputType.FILE);
 		String path = System.getProperty("user.dir") + File.separator + "test-output" + File.separator + "screenshots"
 				+ File.separator + getTodaysDate() + File.separator + testSuiteName + File.separator + testName
 				+ File.separator + testMethodName + File.separator + getSystemTime() + " " + fileName + ".png";
@@ -56,10 +57,10 @@ public class TestUtilities {
 	}
 
 	/** Take screenshot base64, return file encoded */
-	protected String takeScreenshot(WebDriver driver) {
+	protected String takeScreenshot() {
 		String scrFileEncoded = "";
 		try {
-			scrFileEncoded = ((TakesScreenshot) driver).getScreenshotAs(OutputType.BASE64);
+			scrFileEncoded = ((TakesScreenshot) driver.get()).getScreenshotAs(OutputType.BASE64);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -68,12 +69,13 @@ public class TestUtilities {
 	}
 
 	/** Todays date in yyyyMMdd format */
-	private static String getTodaysDate() {
-		return (new SimpleDateFormat("yyyyMMdd").format(new Date()));
+	protected String getTodaysDate() {
+		return "-" + new SimpleDateFormat("yyyyMMdd").format(new Date());
 	}
 
 	/** Current time in HHmmssSSS */
-	private String getSystemTime() {
-		return (new SimpleDateFormat("HHmmssSSS").format(new Date()));
+	protected String getSystemTime() {
+		return "-" + new SimpleDateFormat("HHmmssSSS").format(new Date());
 	}
+
 }

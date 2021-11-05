@@ -28,7 +28,7 @@ public class TestLoggerFactory {
 
 	private static ThreadLocal<Logger> log = new ThreadLocal<Logger>();
 
-	public void crateLogger(String testName) {
+	public void createLogger(String testName) {
 		log.set(LogManager.getLogger(testName));
 	}
 

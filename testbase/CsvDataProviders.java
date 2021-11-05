@@ -35,14 +35,14 @@ public class CsvDataProviders {
 	 * if the parallel argument is false then the tests are run sequentially
 	 */
 
-	@DataProvider(name = "csvReader", parallel = true)
+	@DataProvider(name = "csvReader", parallel = false)
 	public static Iterator<Object[]> csvReader(Method method) {
 		log = LogManager.getLogger("logger csvReader");
 		log.info("Se ejecuta csvReader()");
 		List<Object[]> list = new ArrayList<Object[]>();
 		String pathname = "src" + File.separator + "test" + File.separator + "resources" + File.separator
 				+ "dataproviders" + File.separator + method.getDeclaringClass().getSimpleName() + File.separator
-				+ method.getName() + ".csv";
+				+ method.getDeclaringClass().getSimpleName() + ".csv";
 
 		File file = new File(pathname);
 		try {
@@ -51,11 +51,56 @@ public class CsvDataProviders {
 			if (keys != null) {
 				String[] dataParts;
 				while ((dataParts = reader.readNext()) != null) {
-					Map<String, String> testData = new HashMap<String, String>();
-					for (int i = 0; i < keys.length; i++) {
-						testData.put(keys[i], dataParts[i]);
+					String todo = dataParts[0];
+					if (todo.contentEquals("TRUE")) {
+						Map<String, String> testData = new HashMap<String, String>();
+						for (int i = 0; i < keys.length; i++) {
+
+							testData.put(keys[i], dataParts[i]);
+
+						}
+						list.add(new Object[] { testData });
 					}
-					list.add(new Object[] { testData });
+				}
+			}
+			reader.close();
+		} catch (FileNotFoundException e) {
+			throw new RuntimeException("File " + pathname + " was not found.\n" + e.getStackTrace().toString());
+		} catch (IOException e) {
+			throw new RuntimeException("Could not read " + pathname + " file.\n" + e.getStackTrace().toString());
+		} catch (CsvValidationException e) {
+			throw new RuntimeException(
+					"Could not read next line in csv file" + pathname + "\n" + e.getStackTrace().toString());
+		}
+
+		return list.iterator();
+	}
+	// this dataprovider 
+	@DataProvider(name = "csvReaderMethod", parallel = false)
+	public static Iterator<Object[]> csvReaderMethod(Method method) {
+		log = LogManager.getLogger("logger csvReaderMethod");
+		log.info("Se ejecuta csvReaderMethod()");
+		List<Object[]> list = new ArrayList<Object[]>();
+		String pathname = "src" + File.separator + "test" + File.separator + "resources" + File.separator
+				+ "dataproviders" + File.separator + method.getDeclaringClass().getSimpleName() + File.separator
+				+ method.getDeclaringClass().getSimpleName() + ".csv";
+
+		File file = new File(pathname);
+		try {
+			CSVReader reader = new CSVReader(new FileReader(file));
+			String[] keys = reader.readNext();
+			if (keys != null) {
+				String[] dataParts;
+				while ((dataParts = reader.readNext()) != null) {
+					if (method.getName().equals(dataParts[1])||method.getName().contains(dataParts[1])) { // search for method name
+						Map<String, String> testData = new HashMap<String, String>();
+						for (int i = 0; i < keys.length; i++) {
+
+							testData.put(keys[i], dataParts[i]);
+
+						}
+						list.add(new Object[] { testData });
+					}
 				}
 			}
 			reader.close();

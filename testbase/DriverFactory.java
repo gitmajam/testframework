@@ -1,23 +1,23 @@
 package com.tribu.qaselenium.testframework.testbase;
 
-import org.apache.logging.log4j.Logger;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.firefox.FirefoxOptions;
+import org.openqa.selenium.remote.CapabilityType;
 
 import io.github.bonigarcia.wdm.WebDriverManager;
 
 public class DriverFactory {
 	// singleton
 	private volatile static DriverFactory driverFactory = null;
-	private static int contador = 0; // temp
+	private static int contador = 0; // test
 
 	// private constructor
 	private DriverFactory() {
-		contador = contador + 1;// temp
-		System.out.println("*****driverFactory-counter***** = " + contador);// temp
+		contador = contador + 1;// test
+		System.out.println("*****driverFactory-counter***** = " + contador);// test
 	}
 
 	public static DriverFactory getInstance() {
@@ -33,9 +33,13 @@ public class DriverFactory {
 
 	private static ChromeOptions getChromeOptions() {
 		ChromeOptions options = new ChromeOptions();
+		options.addArguments("--test-type");
+		options.addArguments("disable-infobars");
 		options.addArguments("--disable-dev-shm-usage"); // overcome limited resource problems
 		options.addArguments("--no-sandbox");// Bypass OS security models
-		options.addArguments("--headless");
+		options.addArguments("--disable-popup-blocking");
+		// options.addArguments("--headless");
+		// options.addArguments("--window-size=1200,1100");
 		return options;
 	}
 
@@ -52,7 +56,7 @@ public class DriverFactory {
 
 	private static ThreadLocal<WebDriver> driver = new ThreadLocal<WebDriver>();
 
-	public void createDriver(String browser, Logger log) {
+	public void createDriver(String browser) {
 		browser.toLowerCase();
 
 		switch (browser) {
@@ -72,11 +76,16 @@ public class DriverFactory {
 			driver.set(new ChromeDriver(getChromeOptions()));
 			break;
 		}
-		log.info(driver.get().hashCode() + " driverFactory crea driver");
+		// log.info("[" + driver.get().hashCode() + "] se crea driver");
 	}
 
 	/** this method returns the driver related with the current thread */
 	public WebDriver getDriver() {
+
 		return driver.get();
 	}
+	/*
+	 * public static boolean hasQuit(WebDriver driver) { try { driver.getTitle();
+	 * return false; } catch (SessionNotFoundException e) { return true; } }
+	 */
 }
