@@ -7,7 +7,6 @@ import java.util.Date;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.logging.log4j.Logger;
-import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.OutputType;
 import org.openqa.selenium.TakesScreenshot;
 import org.openqa.selenium.WebDriver;
@@ -18,14 +17,12 @@ import com.tribu.qaselenium.testframework.pagebase.GUtils;
 
 public class TestUtilities {
 
-	
 	protected String testSuiteName;
 	protected String testName;
 	protected String testMethodName;
 	protected Logger log;
-	
+
 	protected Supplier<WebDriver> driver = () -> DriverFactory.getInstance().getDriver();
-	
 
 	// Static Sleep
 	protected void sleep(long millis) {
@@ -36,9 +33,16 @@ public class TestUtilities {
 		}
 	}
 
-	public <T extends BasePO> Supplier<T> openUrl(Supplier<T> pageSupplier) {
+	public <T extends BasePO<T>> Supplier<T> openUrl(Supplier<T> pageSupplier) {
 		driver.get().get(pageSupplier.get().getPageUrl());
 		GUtils.waitForPageToLoad(driver.get());
+		return pageSupplier;
+	}
+
+	public <T extends BasePO<T>> Supplier<T> openUrlWait(Supplier<T> pageSupplier) {
+		driver.get().get(pageSupplier.get().getPageUrl());
+		GUtils.waitForPageToLoad(driver.get());
+		sleep(2000);
 		return pageSupplier;
 	}
 

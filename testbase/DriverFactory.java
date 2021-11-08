@@ -33,13 +33,13 @@ public class DriverFactory {
 
 	private static ChromeOptions getChromeOptions() {
 		ChromeOptions options = new ChromeOptions();
-		options.addArguments("--test-type");
-		options.addArguments("disable-infobars");
+		//options.addArguments("--test-type");
+		//options.addArguments("disable-infobars");
 		options.addArguments("--disable-dev-shm-usage"); // overcome limited resource problems
 		options.addArguments("--no-sandbox");// Bypass OS security models
-		options.addArguments("--disable-popup-blocking");
-		// options.addArguments("--headless");
-		// options.addArguments("--window-size=1200,1100");
+		//options.addArguments("--disable-popup-blocking");
+		//options.addArguments("--headless");
+		//options.addArguments("--window-size=1200,1100");
 		return options;
 	}
 

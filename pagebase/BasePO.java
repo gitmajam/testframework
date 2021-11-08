@@ -13,9 +13,7 @@ import org.openqa.selenium.WebElement;
 import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
-import com.google.common.base.Function;
 import com.google.common.base.Supplier;
-import com.tribu.qaselenium.pages.apiba.APICreateContentP;
 import com.tribu.qaselenium.testframework.testbase.DriverFactory;
 import com.tribu.qaselenium.testframework.testbase.TestLoggerFactory;
 
@@ -36,7 +34,7 @@ public abstract class BasePO<T> {
 
 	// simple click method without return's object
 	public T click() {
-		GUtils.waitForVisibilityOf(locator, 5,driver.get());
+		GUtils.waitForVisibilityOf(locator, 5, driver.get());
 		find(locator).click();
 		GUtils.waitForPageToLoad(driver.get());
 		return (T) this;
@@ -44,28 +42,22 @@ public abstract class BasePO<T> {
 
 	// Type given text into element with given locator
 	public T type(String text) {
-		GUtils.waitForVisibilityOf(locator, 5,driver.get());
+		GUtils.waitForVisibilityOf(locator, 5, driver.get());
 		find(locator).sendKeys(text);
+		return (T) this;
+	}
+
+	public T hoverElement() {
+		Actions actions = new Actions(driver.get());
+		GUtils.waitForVisibilityOf(locator, 5, driver.get());
+		actions.moveToElement(find(locator)).perform();
 		return (T) this;
 	}
 
 	// Clear given text into element with given locator
 	public T clear() {
-		GUtils.waitForVisibilityOf(locator, 5,driver.get());
+		GUtils.waitForVisibilityOf(locator, 5, driver.get());
 		find(locator).clear();
-		return (T) this;
-	}
-
-	// looking for text inside other text
-	public Boolean contains(String text) {
-		GUtils.waitForVisibilityOf(locator, 5,driver.get());
-		return find(locator).getText().contains(text);
-	}
-
-	public T hoverElement() {
-		Actions actions = new Actions(driver.get());
-		GUtils.waitForVisibilityOf(locator, 5,driver.get());
-		actions.moveToElement(find(locator)).perform();
 		return (T) this;
 	}
 
@@ -73,12 +65,13 @@ public abstract class BasePO<T> {
 		return find(locator).getText().trim();
 	}
 
-	public Boolean isDisplayed() {
-		return find(locator).isDisplayed();
-	}
-
 	public T swichToFrame() {
 		driver.get().switchTo().frame(find(locator));
+		return (T) this;
+	}
+
+	public T swichToMain() {
+		driver.get().switchTo().defaultContent();
 		return (T) this;
 	}
 
@@ -104,7 +97,8 @@ public abstract class BasePO<T> {
 		return (T) this;
 	}
 
-	// to use with locator by the tests suits
+	// to use with external locator (locator builded) by the tests suits, used in
+	// asserts of images.
 	public T waitForImage(String imgName) {
 		this.locator = By.xpath(this.xpathPart + imgName + this.getTodaysDate() + "')]");
 		try {
@@ -120,6 +114,25 @@ public abstract class BasePO<T> {
 		return (T) this;
 	}
 
+	// Get URL of current page from browser
+	public String getCurrentUrl() {
+		return driver.get().getCurrentUrl();
+	}
+
+	public abstract String getPageUrl();
+
+	/* for asserts */
+
+	// looking for text inside other text using in asserts
+	public Boolean contains(String text) {
+		GUtils.waitForVisibilityOf(locator, 5, driver.get());
+		return find(locator).getText().contains(text);
+	}
+
+	public Boolean isDisplayed() {
+		return find(locator).isDisplayed();
+	}
+
 	public Boolean verifyImage() {
 		Object result = ((JavascriptExecutor) driver.get()).executeScript("return arguments[0].complete && "
 				+ "typeof arguments[0].naturalWidth != \"undefined\" && " + "arguments[0].naturalWidth > 0",
@@ -130,18 +143,6 @@ public abstract class BasePO<T> {
 			loaded = (Boolean) result;
 		}
 		return loaded;
-	}
-
-	// Get URL of current page from browser
-	public String getCurrentUrl() {
-		return driver.get().getCurrentUrl();
-	}
-
-	public abstract String getPageUrl();
-
-	public T swichToMain() {
-		driver.get().switchTo().defaultContent();
-		return (T) this;
 	}
 
 	// method to retrieve a field from this (T) object using it's name trough a
@@ -171,6 +172,8 @@ public abstract class BasePO<T> {
 		this.locator = campo;
 		return (T) this;
 	};
+
+	/* Utils */
 
 	/** Todays date in yyyyMMdd format */
 	protected String getTodaysDate() {
