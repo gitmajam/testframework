@@ -13,6 +13,7 @@ import java.util.Map;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.testng.ITestContext;
 import org.testng.annotations.DataProvider;
 
 import com.opencsv.CSVReader;
@@ -55,9 +56,7 @@ public class CsvDataProviders {
 					if (todo.contentEquals("TRUE")) {
 						Map<String, String> testData = new HashMap<String, String>();
 						for (int i = 0; i < keys.length; i++) {
-
 							testData.put(keys[i], dataParts[i]);
-
 						}
 						list.add(new Object[] { testData });
 					}
@@ -119,14 +118,14 @@ public class CsvDataProviders {
 	}
 
 	@DataProvider(name = "csvReaderMapList", parallel = false)
-	public static Iterator<Object[]> csvReaderMatrix(Method method) {
+	public static Iterator<Object[]> csvReaderMatrix(Method method,ITestContext testContext) {
 		log = LogManager.getLogger("logger csvReaderMethod");
 		log.info("Se ejecuta csvReaderMethod()");
 		List<Object[]> list = new ArrayList<Object[]>();
 		List<Map<String, String>> dataList = new ArrayList<Map<String, String>>();
 		String pathname = "src" + File.separator + "test" + File.separator + "resources" + File.separator
-				+ "dataproviders" + File.separator + method.getDeclaringClass().getSimpleName() + File.separator
-				+ method.getDeclaringClass().getSimpleName() + ".csv";
+				+ "dataproviders" + File.separator + testContext.getName() + File.separator
+				+ testContext.getName() + ".csv";
 
 		File file = new File(pathname);
 		try {
@@ -134,7 +133,6 @@ public class CsvDataProviders {
 			String[] keys = reader.readNext();
 			if (keys != null) {
 				String[] dataParts;
-
 				while ((dataParts = reader.readNext()) != null) {
 					String todo = dataParts[0];
 					if (todo.contentEquals("TRUE")) {

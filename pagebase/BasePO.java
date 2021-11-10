@@ -79,7 +79,6 @@ public abstract class BasePO<T> {
 		try {
 			return driver.get().findElement(locator);
 		} catch (WebDriverException e) {
-			log.info("Fail: WebDriver couldn’t locate the element: " + locator);
 			throw (e);
 		}
 	}

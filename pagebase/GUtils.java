@@ -53,7 +53,7 @@ public class GUtils {
 			 */
 			new WebDriverWait(driver, 30).until(webDriver -> ((JavascriptExecutor) webDriver)
 					.executeScript("return document.readyState").equals("complete"));
-			log.info("Espero el cargue de la pagina");
+			log.info("Waiting for page to load");
 		} catch (Exception e) {
 			log.info("WaitForPageLoad timeout");
 			throw (e);
