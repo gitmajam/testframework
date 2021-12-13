@@ -30,12 +30,11 @@ public class TestBase extends TestUtilities {
 		driverFactory.createDriver(browser);
 		log.info("drive recien creado = " + driverFactory.getDriver().hashCode());
 		driverFactory.getDriver().manage().window().maximize();
-
 	}
 
 	@AfterMethod(alwaysRun = true)
 	public void tearDown() {
-		//driverFactory.getDriver().quit();
-		//log.info("drive recien cerrado" + driverFactory.getDriver().hashCode());
+		driverFactory.getDriver().quit();
+		log.info("drive recien cerrado" + driverFactory.getDriver().hashCode());
 	}
 }

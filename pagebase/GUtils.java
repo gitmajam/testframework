@@ -27,6 +27,12 @@ public class GUtils {
 			throw (e);
 		}
 	}
+	
+	public static void waitForClickableOf(By locator, Integer timeOutInSeconds,WebDriver driver) {
+		log.info("waiting for clikable");
+		timeOutInSeconds = timeOutInSeconds != null ? timeOutInSeconds : 30;
+		new WebDriverWait(driver, timeOutInSeconds).until(ExpectedConditions.elementToBeClickable(locator));
+	}
 
 	// Wait for given number of seconds for element with given locator to be visible
 	// on the page, Explicit wait.

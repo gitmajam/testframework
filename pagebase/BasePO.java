@@ -3,6 +3,8 @@ package com.tribu.qaselenium.testframework.pagebase;
 import java.lang.reflect.Field;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Iterator;
+import java.util.Set;
 
 import org.apache.logging.log4j.Logger;
 import org.openqa.selenium.By;
@@ -21,21 +23,37 @@ public abstract class BasePO<T> {
 
 	protected By locator;
 	protected String xpathPart;
+	protected String PTitle;
+	protected String xpathVariable1;
+	protected String xpathVariable2;
 
 	protected Logger log = TestLoggerFactory.getInstance().getLogger();
 	protected Supplier<WebDriver> driver = () -> DriverFactory.getInstance().getDriver();
 
 	public <R> Supplier<R> click(Supplier<R> pageSupplier) {
 		GUtils.waitForVisibilityOf(locator, 5, driver.get());
-		find(locator).click();
+		try {
+			find(locator).click();
+		} catch (Exception e) {
+			JavascriptExecutor executor = (JavascriptExecutor) driver.get();
+			executor.executeScript("arguments[0].click();", find(locator));
+			log.info("click por javascript");
+		}
 		GUtils.waitForPageToLoad(driver.get());
 		return pageSupplier;
 	}
 
 	// simple click method without return's object
 	public T click() {
-		GUtils.waitForVisibilityOf(locator, 5, driver.get());
-		find(locator).click();
+		GUtils.waitForVisibilityOf(locator, 10, driver.get());
+		GUtils.waitForClickableOf(locator, 10, driver.get());
+		try {
+			find(locator).click();
+		} catch (Exception e) {
+			JavascriptExecutor executor = (JavascriptExecutor) driver.get();
+			executor.executeScript("arguments[0].click();", find(locator));
+			log.info("click por javascript");
+		}
 		GUtils.waitForPageToLoad(driver.get());
 		return (T) this;
 	}
@@ -113,14 +131,13 @@ public abstract class BasePO<T> {
 		return (T) this;
 	}
 
-	// Get URL of current page from browser
 	public String getCurrentUrl() {
 		return driver.get().getCurrentUrl();
 	}
 
 	public abstract String getPageUrl();
 
-	/* for asserts */
+	/* asserts */
 
 	// looking for text inside other text using in asserts
 	public Boolean contains(String text) {
@@ -171,6 +188,32 @@ public abstract class BasePO<T> {
 		this.locator = campo;
 		return (T) this;
 	};
+
+	/* switch to new window page */
+
+	public T switchToWindowWithTitle() {
+		String firstWindow = driver.get().getWindowHandle();
+		Set<String> allWindows = driver.get().getWindowHandles();
+		Iterator<String> windowsIterator = allWindows.iterator();
+
+		while (windowsIterator.hasNext()) {
+			String windowHandle = windowsIterator.next().toString();
+			if (!windowHandle.equals(firstWindow)) {
+				driver.get().switchTo().window(windowHandle);
+				if (getCurrentPageTitle().contains(PTitle)) {
+					log.info("CurretPageTitle = " + getCurrentPageTitle());
+					log.info("ExpectedPageTitle = " + PTitle);
+					break;
+				}
+			}
+		}
+		return (T) this;
+	}
+
+	/** Get title of current page */
+	public String getCurrentPageTitle() {
+		return driver.get().getTitle();
+	}
 
 	/* Utils */
 

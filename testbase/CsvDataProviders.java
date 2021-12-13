@@ -42,8 +42,8 @@ public class CsvDataProviders {
 		log.info("Se ejecuta csvReader()");
 		List<Object[]> list = new ArrayList<Object[]>();
 		String pathname = "src" + File.separator + "test" + File.separator + "resources" + File.separator
-				+ "dataproviders" + File.separator + method.getDeclaringClass().getSimpleName() + File.separator
-				+ method.getDeclaringClass().getSimpleName() + ".csv";
+				+ method.getDeclaringClass().getSimpleName() + File.separator + "dataproviders" + File.separator
+				+ method.getName() + ".csv";
 
 		File file = new File(pathname);
 		try {
@@ -74,16 +74,16 @@ public class CsvDataProviders {
 
 		return list.iterator();
 	}
-
-	// this dataprovider
+	
+	//this dataprovider search for method name
 	@DataProvider(name = "csvReaderMethod", parallel = false)
 	public static Iterator<Object[]> csvReaderMethod(Method method) {
 		log = LogManager.getLogger("logger csvReaderMethod");
 		log.info("Se ejecuta csvReaderMethod()");
 		List<Object[]> list = new ArrayList<Object[]>();
 		String pathname = "src" + File.separator + "test" + File.separator + "resources" + File.separator
-				+ "dataproviders" + File.separator + method.getDeclaringClass().getSimpleName() + File.separator
-				+ method.getDeclaringClass().getSimpleName() + ".csv";
+				+ method.getDeclaringClass().getSimpleName() + File.separator + "dataproviders" + File.separator
+				+ method.getName() + ".csv";
 
 		File file = new File(pathname);
 		try {
@@ -92,10 +92,7 @@ public class CsvDataProviders {
 			if (keys != null) {
 				String[] dataParts;
 				while ((dataParts = reader.readNext()) != null) {
-					if (method.getName().equals(dataParts[1]) || method.getName().contains(dataParts[1])) { // search
-																											// for
-																											// method
-																											// name
+					if (method.getName().equals(dataParts[1]) || method.getName().contains(dataParts[1])) {
 						Map<String, String> testData = new HashMap<String, String>();
 						for (int i = 0; i < keys.length; i++) {
 							testData.put(keys[i], dataParts[i]);
@@ -118,14 +115,14 @@ public class CsvDataProviders {
 	}
 
 	@DataProvider(name = "csvReaderMapList", parallel = false)
-	public static Iterator<Object[]> csvReaderMatrix(Method method,ITestContext testContext) {
+	public static Iterator<Object[]> csvReaderMatrix(Method method, ITestContext testContext) {
 		log = LogManager.getLogger("logger csvReaderMethod");
 		log.info("Se ejecuta csvReaderMethod()");
 		List<Object[]> list = new ArrayList<Object[]>();
 		List<Map<String, String>> dataList = new ArrayList<Map<String, String>>();
 		String pathname = "src" + File.separator + "test" + File.separator + "resources" + File.separator
-				+ "dataproviders" + File.separator + testContext.getName() + File.separator
-				+ testContext.getName() + ".csv";
+				+ method.getDeclaringClass().getSimpleName() + File.separator + "dataproviders" + File.separator
+				+ method.getName() + ".csv";
 
 		File file = new File(pathname);
 		try {
@@ -157,4 +154,5 @@ public class CsvDataProviders {
 
 		return list.iterator();
 	}
+	
 }
