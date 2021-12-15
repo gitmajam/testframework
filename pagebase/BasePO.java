@@ -148,6 +148,11 @@ public abstract class BasePO<T> {
 	public Boolean isDisplayed() {
 		return find(locator).isDisplayed();
 	}
+	
+	//to verify if element is displayed, if not, it returns an Exception to be handle  by the caller
+	public Boolean existElement() throws Exception {
+			return driver.get().findElement(locator).isDisplayed();
+	}
 
 	public Boolean verifyImage() {
 		Object result = ((JavascriptExecutor) driver.get()).executeScript("return arguments[0].complete && "
