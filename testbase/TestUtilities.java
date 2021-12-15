@@ -186,7 +186,6 @@ public class TestUtilities {
 			int i = 0;// String array
 			// the example input xlsx has only two columns.
 			String[] csvdata = new String[row.getLastCellNum()];
-			log.info("LastCellNum : " + row.getLastCellNum());
 			Iterator<Cell> cellIterator = row.cellIterator();
 
 			while (cellIterator.hasNext()) {

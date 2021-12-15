@@ -29,7 +29,6 @@ public class GUtils {
 	}
 	
 	public static void waitForClickableOf(By locator, Integer timeOutInSeconds,WebDriver driver) {
-		log.info("waiting for clikable");
 		timeOutInSeconds = timeOutInSeconds != null ? timeOutInSeconds : 30;
 		new WebDriverWait(driver, timeOutInSeconds).until(ExpectedConditions.elementToBeClickable(locator));
 	}
@@ -59,7 +58,6 @@ public class GUtils {
 			 */
 			new WebDriverWait(driver, 30).until(webDriver -> ((JavascriptExecutor) webDriver)
 					.executeScript("return document.readyState").equals("complete"));
-			log.info("Waiting for page to load");
 		} catch (Exception e) {
 			log.info("WaitForPageLoad timeout");
 			throw (e);

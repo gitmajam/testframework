@@ -63,7 +63,7 @@ public class MailHelper extends TestBase {
 
 		// Search for mail
 		for (int i = 0; i < 5; i++) {
-			messages = folder.search(new SubjectTerm("Codigo"), folder.getMessages());
+			messages = folder.search(new SubjectTerm(keyword), folder.getMessages());
 			// Wait for 10 seconds
 			if (messages.length == 0) {
 				Thread.sleep(10000);
