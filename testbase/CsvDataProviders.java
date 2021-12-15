@@ -75,7 +75,7 @@ public class CsvDataProviders {
 		return list.iterator();
 	}
 
-	// this dataprovider
+	// this dataprovider search for method name
 	@DataProvider(name = "csvReaderMethod", parallel = false)
 	public static Iterator<Object[]> csvReaderMethod(Method method) {
 		log = LogManager.getLogger("logger csvReaderMethod");
@@ -92,10 +92,7 @@ public class CsvDataProviders {
 			if (keys != null) {
 				String[] dataParts;
 				while ((dataParts = reader.readNext()) != null) {
-					if (method.getName().equals(dataParts[1]) || method.getName().contains(dataParts[1])) { // search
-																											// for
-																											// method
-																											// name
+					if (method.getName().equals(dataParts[1]) || method.getName().contains(dataParts[1])) {
 						Map<String, String> testData = new HashMap<String, String>();
 						for (int i = 0; i < keys.length; i++) {
 							testData.put(keys[i], dataParts[i]);
