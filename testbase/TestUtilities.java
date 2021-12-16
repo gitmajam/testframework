@@ -98,9 +98,8 @@ public class TestUtilities {
 		return "-" + new SimpleDateFormat("HHmmssSSS").format(new Date());
 	}
 
-	public Iterator<Object[]> csvReader(String pathname) {
-		List<Object[]> list = new ArrayList<Object[]>();
-		List<Map<String, String>> dataList = new ArrayList<Map<String, String>>();
+	public Iterator<Map<String, String>> csvReader(String pathname) {
+		List<Map<String, String>> list = new ArrayList<Map<String, String>>();
 		File file = new File(pathname);
 		try {
 			CSVReader reader = new CSVReader(new FileReader(file));
@@ -114,10 +113,9 @@ public class TestUtilities {
 						for (int i = 0; i < keys.length; i++) {
 							testData.put(keys[i], dataParts[i]);
 						}
-						dataList.add(testData);
+						list.add(testData);
 					}
 				}
-				list.add(new Object[] { dataList });
 			}
 			reader.close();
 		} catch (FileNotFoundException e) {
@@ -154,10 +152,12 @@ public class TestUtilities {
 					// you need to add more code here based on
 					// your requirement / transformations
 					case STRING:
-						testData.put(keys.getCell(cell.getColumnIndex()).getStringCellValue(), cell.getStringCellValue());
+						testData.put(keys.getCell(cell.getColumnIndex()).getStringCellValue(),
+								cell.getStringCellValue());
 						break;
 					case NUMERIC:
-						testData.put(keys.getCell(cell.getColumnIndex()).getStringCellValue(), String.valueOf((int)cell.getNumericCellValue()));
+						testData.put(keys.getCell(cell.getColumnIndex()).getStringCellValue(),
+								String.valueOf((int) cell.getNumericCellValue()));
 						break;
 					default:
 						break;
@@ -197,7 +197,7 @@ public class TestUtilities {
 					csvdata[i] = cell.getStringCellValue();
 					break;
 				case NUMERIC:
-					csvdata[i] = String.valueOf((int)cell.getNumericCellValue());
+					csvdata[i] = String.valueOf((int) cell.getNumericCellValue());
 					break;
 				default:
 					break;

@@ -111,6 +111,47 @@ public class CsvDataProviders {
 
 		return list.iterator();
 	}
+	
+	// dataprovider Credentials by environment
+		@DataProvider(name = "csvReaderCredentials", parallel = false)
+		public static Iterator<Object[]> csvReaderCredentials(Method method) {
+			String environment = PropertiesFile.getProperties("env");
+			List<Object[]> list = new ArrayList<Object[]>();
+			String pathname = "src" + File.separator + "test" + File.separator + "resources" + File.separator
+					+ "Credentials" + File.separator + "credentials.csv";
+
+			File file = new File(pathname);
+			try {
+				CSVReader reader = new CSVReader(new FileReader(file));
+				String[] keys = reader.readNext();
+				if (keys != null) {
+					String[] dataParts;
+					while ((dataParts = reader.readNext()) != null) {
+						String todo = dataParts[0];
+						String env = dataParts[1];
+						if (todo.contentEquals("TRUE")) {
+							if (env.contentEquals(environment)) {
+								Map<String, String> testData = new HashMap<String, String>();
+								for (int i = 0; i < keys.length; i++) {
+									testData.put(keys[i], dataParts[i]);
+								}
+								list.add(new Object[] { testData });
+							}
+						}
+					}
+				}
+				reader.close();
+			} catch (FileNotFoundException e) {
+				throw new RuntimeException("File " + pathname + " was not found.\n" + e.getStackTrace().toString());
+			} catch (IOException e) {
+				throw new RuntimeException("Could not read " + pathname + " file.\n" + e.getStackTrace().toString());
+			} catch (CsvValidationException e) {
+				throw new RuntimeException(
+						"Could not read next line in csv file" + pathname + "\n" + e.getStackTrace().toString());
+			}
+
+			return list.iterator();
+		}
 
 	// this dataprovider search for method name
 	@DataProvider(name = "csvReaderMethod", parallel = false)
