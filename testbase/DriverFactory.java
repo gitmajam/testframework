@@ -33,8 +33,10 @@ public class DriverFactory {
 
 	private static ChromeOptions getChromeOptions() {
 		ChromeOptions options = new ChromeOptions();
-		options.addArguments("--headless");
-		options.addArguments("--window-size=1200,1100");
+		if (PropertiesFile.getProperties("chromeProperty").equals("headless")) {
+			options.addArguments("--headless");
+			options.addArguments("--window-size=1200,1100");
+		}
 		return options;
 	}
 
