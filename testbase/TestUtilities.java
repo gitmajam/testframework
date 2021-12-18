@@ -54,11 +54,12 @@ public class TestUtilities {
 		GUtils.waitForPageToLoad(driver.get());
 		return pageSupplier;
 	}
-
-	public <T extends BasePO<T>> Supplier<T> openUrlWait(Supplier<T> pageSupplier) {
+	
+	//open an url with a delay of 2 seconds
+	public <T extends BasePO<T>> Supplier<T> openUrl(Supplier<T> pageSupplier,long delay) {
 		driver.get().get(pageSupplier.get().getPageUrl());
 		GUtils.waitForPageToLoad(driver.get());
-		sleep(2000);
+		sleep(delay);
 		return pageSupplier;
 	}
 
