@@ -22,8 +22,11 @@ import com.tribu.qaselenium.testframework.testbase.TestLoggerFactory;
 public abstract class BasePO<T> {
 
 	protected By locator;
-	protected String xpathPart;
+	//Page title for switch to this page
 	protected String PTitle;
+	// this string variables are used in case you need to create a xpath reference
+	// in runtime, example: Hello Frontline
+	protected String xpathPart;
 	protected String xpathVariable1;
 	protected String xpathVariable2;
 
@@ -123,14 +126,13 @@ public abstract class BasePO<T> {
 					webDriver -> ((JavascriptExecutor) webDriver).executeScript("return arguments[0].complete && "
 							+ "typeof arguments[0].naturalWidth != \"undefined\" && " + "arguments[0].naturalWidth > 0",
 							find(locator)));
-
 		} catch (Exception e) {
 			log.info("WaitForImage timeout");
 			throw (e);
 		}
 		return (T) this;
 	}
-	
+
 	public T waitForVisivility() {
 		GUtils.waitForVisibilityOf(locator, 90, driver.get());
 		return (T) this;
@@ -153,10 +155,11 @@ public abstract class BasePO<T> {
 	public Boolean isDisplayed() {
 		return find(locator).isDisplayed();
 	}
-	
-	//to verify if element is displayed, if not, it returns an Exception to be handle  by the caller
+
+	// to verify if element is displayed, if not, it returns an Exception to be
+	// handle by the caller
 	public Boolean existElement() throws Exception {
-			return driver.get().findElement(locator).isDisplayed();
+		return driver.get().findElement(locator).isDisplayed();
 	}
 
 	public Boolean verifyImage() {
@@ -199,7 +202,7 @@ public abstract class BasePO<T> {
 		return (T) this;
 	};
 
-	/* switch to new window page */
+	/* switch to new window page, ex: opening hello-beer in simplifica hub */
 
 	public T switchToWindowWithTitle() {
 		String firstWindow = driver.get().getWindowHandle();
