@@ -137,6 +137,11 @@ public abstract class BasePO<T> {
 		GUtils.waitForVisibilityOf(locator, 90, driver.get());
 		return (T) this;
 	}
+	
+	public T waitForNotVisivility() {
+		GUtils.waitForNotVisibilityOf(locator, 30, driver.get());
+		return (T) this;
+	}
 
 	public String getCurrentUrl() {
 		return driver.get().getCurrentUrl();
