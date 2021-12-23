@@ -34,7 +34,9 @@ public class TestBase extends TestUtilities {
 
 	@AfterMethod(alwaysRun = true)
 	public void tearDown() {
-		driverFactory.getDriver().quit();
-		log.info("drive recien cerrado" + driverFactory.getDriver().hashCode());
+		if (PropertiesFile.getProperties("teardown").equals("true")) {
+			driverFactory.getDriver().quit();
+			log.info("drive recien cerrado" + driverFactory.getDriver().hashCode());
+		}
 	}
 }
