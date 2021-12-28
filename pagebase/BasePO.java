@@ -5,6 +5,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.Set;
+import java.util.function.Function;
 
 import org.apache.logging.log4j.Logger;
 import org.openqa.selenium.By;
@@ -13,6 +14,7 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebDriverException;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.interactions.Actions;
+import org.openqa.selenium.support.ui.Sleeper;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
 import com.google.common.base.Supplier;
@@ -22,7 +24,7 @@ import com.tribu.qaselenium.testframework.testbase.TestLoggerFactory;
 public abstract class BasePO<T> {
 
 	protected By locator;
-	//Page title for switch to this page
+	// Page title for switch to this page
 	protected String PTitle;
 	// this string variables are used in case you need to create a xpath reference
 	// in runtime, example: Hello Frontline
@@ -55,7 +57,26 @@ public abstract class BasePO<T> {
 		} catch (Exception e) {
 			JavascriptExecutor executor = (JavascriptExecutor) driver.get();
 			executor.executeScript("arguments[0].click();", find(locator));
-			log.info("click por javascript");
+			log.info("click por javascript : " + locator );
+		}
+		GUtils.waitForPageToLoad(driver.get());
+		return (T) this;
+	}
+	// click with delay
+	public T click(Integer miliSeconds) {
+		try {
+			Thread.sleep(miliSeconds);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+		GUtils.waitForVisibilityOf(locator, 10, driver.get());
+		GUtils.waitForClickableOf(locator, 10, driver.get());
+		try {
+			find(locator).click();
+		} catch (Exception e) {
+			JavascriptExecutor executor = (JavascriptExecutor) driver.get();
+			executor.executeScript("arguments[0].click();", find(locator));
+			log.info("click por javascript : " + locator );
 		}
 		GUtils.waitForPageToLoad(driver.get());
 		return (T) this;
@@ -88,6 +109,11 @@ public abstract class BasePO<T> {
 
 	public T swichToFrame() {
 		driver.get().switchTo().frame(find(locator));
+		return (T) this;
+	}
+
+	public T swichToActiveElement() {
+		driver.get().switchTo().activeElement();
 		return (T) this;
 	}
 
@@ -135,9 +161,10 @@ public abstract class BasePO<T> {
 
 	public T waitForVisivility() {
 		GUtils.waitForVisibilityOf(locator, 90, driver.get());
+		GUtils.waitForClickableOf(locator, 90, driver.get());
 		return (T) this;
 	}
-	
+
 	public T waitForNotVisivility() {
 		GUtils.waitForNotVisibilityOf(locator, 30, driver.get());
 		return (T) this;
@@ -231,6 +258,26 @@ public abstract class BasePO<T> {
 	/** Get title of current page */
 	public String getCurrentPageTitle() {
 		return driver.get().getTitle();
+	}
+
+	// Html5 video
+	// it returns the total video duration time
+	public double videoDuration() {
+		double duration = 0;
+		new WebDriverWait(driver.get(), 10).until(webDriver -> ((JavascriptExecutor) webDriver)
+				.executeScript("return arguments[0].duration", webDriver.findElement(locator)));
+		WebElement video = driver.get().findElement(locator);
+		JavascriptExecutor js = (JavascriptExecutor) driver.get();
+		duration = (double) js.executeScript("return arguments[0].duration", video);
+		return duration;
+	}
+
+	// it set the currentime in the video
+	public T videoCurrentTime(double currentTime) {
+		WebElement video = driver.get().findElement(locator);
+		JavascriptExecutor js = (JavascriptExecutor) driver.get();
+		js.executeScript("return arguments[0].currentTime=" + currentTime, video);
+		return (T) this;
 	}
 
 	/* Utils */
