@@ -1,11 +1,13 @@
 package com.tribu.qaselenium.testframework.testbase;
 
+import org.openqa.selenium.UnexpectedAlertBehaviour;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.firefox.FirefoxOptions;
 import org.openqa.selenium.remote.CapabilityType;
+import org.openqa.selenium.remote.DesiredCapabilities;
 
 import io.github.bonigarcia.wdm.WebDriverManager;
 
@@ -16,8 +18,9 @@ public class DriverFactory {
 
 	// private constructor
 	private DriverFactory() {
-		contador = contador + 1;// test
-		System.out.println("*****driverFactory-counter***** = " + contador);// test
+		// check point created instances 
+		contador = contador + 1;
+		System.out.println("*****driverFactory-counter***** = " + contador);
 	}
 
 	public static DriverFactory getInstance() {
@@ -30,9 +33,11 @@ public class DriverFactory {
 		}
 		return driverFactory;
 	}
-
+	
 	private static ChromeOptions getChromeOptions() {
 		ChromeOptions options = new ChromeOptions();
+		// this capability enter accept button by default in chrome pop-ups
+		options.setCapability(CapabilityType.UNEXPECTED_ALERT_BEHAVIOUR, UnexpectedAlertBehaviour.ACCEPT);
 		if (PropertiesFile.getProperties("headless").equals("true")) {
 			options.addArguments("--headless");
 			options.addArguments("--window-size=1200,1100");
@@ -73,7 +78,6 @@ public class DriverFactory {
 			driver.set(new ChromeDriver(getChromeOptions()));
 			break;
 		}
-		// log.info("[" + driver.get().hashCode() + "] se crea driver");
 	}
 
 	/** this method returns the driver related with the current thread */
@@ -81,8 +85,4 @@ public class DriverFactory {
 
 		return driver.get();
 	}
-	/*
-	 * public static boolean hasQuit(WebDriver driver) { try { driver.getTitle();
-	 * return false; } catch (SessionNotFoundException e) { return true; } }
-	 */
 }

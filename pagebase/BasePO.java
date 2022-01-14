@@ -8,12 +8,14 @@ import java.util.Set;
 import java.util.function.Function;
 
 import org.apache.logging.log4j.Logger;
+import org.openqa.selenium.Alert;
 import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebDriverException;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.interactions.Actions;
+import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.Sleeper;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
@@ -114,6 +116,17 @@ public abstract class BasePO<T> {
 
 	public T swichToActiveElement() {
 		driver.get().switchTo().activeElement();
+		return (T) this;
+	}
+	
+	public T acceptAlert() {
+		try {
+		    WebDriverWait wait = new WebDriverWait(driver.get(), 5);
+		    Alert alert = wait.until(ExpectedConditions.alertIsPresent());
+		    alert.accept();
+		} catch (Exception e) {
+		    log.info(e);
+		}
 		return (T) this;
 	}
 
