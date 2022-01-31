@@ -13,9 +13,7 @@ import org.openqa.selenium.WebElement;
 import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
-import com.google.common.base.Function;
 import com.google.common.base.Supplier;
-import com.tribu.qaselenium.pages.apiba.APICreateContentP;
 import com.tribu.qaselenium.testframework.testbase.DriverFactory;
 import com.tribu.qaselenium.testframework.testbase.TestLoggerFactory;
 
@@ -28,7 +26,7 @@ public abstract class BasePO<T> {
 	protected Supplier<WebDriver> driver = () -> DriverFactory.getInstance().getDriver();
 
 	public <R> Supplier<R> click(Supplier<R> pageSupplier) {
-		GUtils.waitForVisibilityOf(locator, 5, driver.get());
+		GUtils.waitForBeClickableOf(locator, 5, driver.get());
 		find(locator).click();
 		GUtils.waitForPageToLoad(driver.get());
 		return pageSupplier;
@@ -36,7 +34,7 @@ public abstract class BasePO<T> {
 
 	// simple click method without return's object
 	public T click() {
-		GUtils.waitForVisibilityOf(locator, 5,driver.get());
+		GUtils.waitForBeClickableOf(locator, 5, driver.get());
 		find(locator).click();
 		GUtils.waitForPageToLoad(driver.get());
 		return (T) this;
@@ -44,27 +42,27 @@ public abstract class BasePO<T> {
 
 	// Type given text into element with given locator
 	public T type(String text) {
-		GUtils.waitForVisibilityOf(locator, 5,driver.get());
+		GUtils.waitForVisibilityOf(locator, 5, driver.get());
 		find(locator).sendKeys(text);
 		return (T) this;
 	}
 
 	// Clear given text into element with given locator
 	public T clear() {
-		GUtils.waitForVisibilityOf(locator, 5,driver.get());
+		GUtils.waitForVisibilityOf(locator, 5, driver.get());
 		find(locator).clear();
 		return (T) this;
 	}
 
 	// looking for text inside other text
 	public Boolean contains(String text) {
-		GUtils.waitForVisibilityOf(locator, 5,driver.get());
+		GUtils.waitForVisibilityOf(locator, 5, driver.get());
 		return find(locator).getText().contains(text);
 	}
 
 	public T hoverElement() {
 		Actions actions = new Actions(driver.get());
-		GUtils.waitForVisibilityOf(locator, 5,driver.get());
+		GUtils.waitForVisibilityOf(locator, 5, driver.get());
 		actions.moveToElement(find(locator)).perform();
 		return (T) this;
 	}
@@ -75,6 +73,11 @@ public abstract class BasePO<T> {
 
 	public Boolean isDisplayed() {
 		return find(locator).isDisplayed();
+	}
+	
+	public Boolean isEnable() {
+		return find(locator).isEnabled();
+		
 	}
 
 	public T swichToFrame() {
@@ -89,6 +92,11 @@ public abstract class BasePO<T> {
 			log.info("Fail: WebDriver couldn’t locate the element: " + locator);
 			throw (e);
 		}
+	}
+
+	public T waitForInvisible() {
+		GUtils.waitForNotVisibilityOf(locator, 10, driver.get());
+		return (T) this;
 	}
 
 	public T waitForImage() {

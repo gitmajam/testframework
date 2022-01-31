@@ -34,6 +34,11 @@ public class GUtils {
 		timeOutInSeconds = timeOutInSeconds != null ? timeOutInSeconds : 30;
 		new WebDriverWait(driver, timeOutInSeconds).until(ExpectedConditions.visibilityOfElementLocated(locator));
 	}
+	
+	public static void waitForBeClickableOf(By locator, Integer timeOutInSeconds,WebDriver driver) {
+		timeOutInSeconds = timeOutInSeconds != null ? timeOutInSeconds : 30;
+		new WebDriverWait(driver, timeOutInSeconds).until(ExpectedConditions.elementToBeClickable(locator));
+	}
 
 	// Wait for given number of seconds for element with given locator to be
 	// invisible
