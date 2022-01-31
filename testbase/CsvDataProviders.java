@@ -11,15 +11,13 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.testng.ITestContext;
 import org.testng.annotations.DataProvider;
 
 import com.opencsv.CSVReader;
 import com.opencsv.exceptions.CsvValidationException;
 
 public class CsvDataProviders {
-	protected static Logger log;
 
 	/**
 	 * This method return an iterator of an array list containing all data sets
@@ -37,12 +35,10 @@ public class CsvDataProviders {
 
 	@DataProvider(name = "csvReader", parallel = false)
 	public static Iterator<Object[]> csvReader(Method method) {
-		log = LogManager.getLogger("logger csvReader");
-		log.info("Se ejecuta csvReader()");
 		List<Object[]> list = new ArrayList<Object[]>();
 		String pathname = "src" + File.separator + "test" + File.separator + "resources" + File.separator
-				+ "dataproviders" + File.separator + method.getDeclaringClass().getSimpleName() + File.separator
-				+ method.getDeclaringClass().getSimpleName() + ".csv";
+				+ method.getDeclaringClass().getSimpleName() + File.separator + "dataproviders" + File.separator
+				+ method.getName() + ".csv";
 
 		File file = new File(pathname);
 		try {
@@ -55,9 +51,7 @@ public class CsvDataProviders {
 					if (todo.contentEquals("TRUE")) {
 						Map<String, String> testData = new HashMap<String, String>();
 						for (int i = 0; i < keys.length; i++) {
-
 							testData.put(keys[i], dataParts[i]);
-
 						}
 						list.add(new Object[] { testData });
 					}
@@ -75,14 +69,133 @@ public class CsvDataProviders {
 
 		return list.iterator();
 	}
-	// this dataprovider 
-	@DataProvider(name = "csvReaderMethod", parallel = false)
-	public static Iterator<Object[]> csvReaderMethod(Method method) {
-		log = LogManager.getLogger("logger csvReaderMethod");
-		log.info("Se ejecuta csvReaderMethod()");
+
+	// dataprovider filter by environment
+	@DataProvider(name = "csvReaderEnvironment", parallel = false)
+	public static Iterator<Object[]> csvReaderEnvironment(Method method) {
+		String environment = PropertiesFile.getProperties("env");
 		List<Object[]> list = new ArrayList<Object[]>();
 		String pathname = "src" + File.separator + "test" + File.separator + "resources" + File.separator
-				+ "dataproviders" + File.separator + method.getDeclaringClass().getSimpleName() + File.separator
+				+ method.getDeclaringClass().getSimpleName() + File.separator + "dataproviders" + File.separator
+				+ method.getName() + ".csv";
+
+		File file = new File(pathname);
+		try {
+			CSVReader reader = new CSVReader(new FileReader(file));
+			String[] keys = reader.readNext();
+			if (keys != null) {
+				String[] dataParts;
+				while ((dataParts = reader.readNext()) != null) {
+					String todo = dataParts[0];
+					String env = dataParts[1];
+					if (todo.contentEquals("TRUE")) {
+						if (env.contentEquals(environment)) {
+							Map<String, String> testData = new HashMap<String, String>();
+							for (int i = 0; i < keys.length; i++) {
+								testData.put(keys[i], dataParts[i]);
+							}
+							list.add(new Object[] { testData });
+						}
+					}
+				}
+			}
+			reader.close();
+		} catch (FileNotFoundException e) {
+			throw new RuntimeException("File " + pathname + " was not found.\n" + e.getStackTrace().toString());
+		} catch (IOException e) {
+			throw new RuntimeException("Could not read " + pathname + " file.\n" + e.getStackTrace().toString());
+		} catch (CsvValidationException e) {
+			throw new RuntimeException(
+					"Could not read next line in csv file" + pathname + "\n" + e.getStackTrace().toString());
+		}
+
+		return list.iterator();
+	}
+
+	// dataprovider Credentials by environment
+	@DataProvider(name = "csvReaderCredentials", parallel = false)
+	public static Iterator<Object[]> csvReaderCredentials(Method method) {
+		String environment = PropertiesFile.getProperties("env");
+		List<Object[]> list = new ArrayList<Object[]>();
+		String pathname = "src" + File.separator + "test" + File.separator + "resources" + File.separator
+				+ "Credentials" + File.separator + "credentials.csv";
+
+		File file = new File(pathname);
+		try {
+			CSVReader reader = new CSVReader(new FileReader(file));
+			String[] keys = reader.readNext();
+			if (keys != null) {
+				String[] dataParts;
+				while ((dataParts = reader.readNext()) != null) {
+					String todo = dataParts[0];
+					String env = dataParts[1];
+					if (todo.contentEquals("TRUE")) {
+						if (env.contentEquals(environment)) {
+							Map<String, String> testData = new HashMap<String, String>();
+							for (int i = 0; i < keys.length; i++) {
+								testData.put(keys[i], dataParts[i]);
+							}
+							list.add(new Object[] { testData });
+						}
+					}
+				}
+			}
+			reader.close();
+		} catch (FileNotFoundException e) {
+			throw new RuntimeException("File " + pathname + " was not found.\n" + e.getStackTrace().toString());
+		} catch (IOException e) {
+			throw new RuntimeException("Could not read " + pathname + " file.\n" + e.getStackTrace().toString());
+		} catch (CsvValidationException e) {
+			throw new RuntimeException(
+					"Could not read next line in csv file" + pathname + "\n" + e.getStackTrace().toString());
+		}
+
+		return list.iterator();
+	}
+
+	// this dataprovider search for method, name with a diferent file per method
+	@DataProvider(name = "csvReaderMethod", parallel = false)
+	public static Iterator<Object[]> csvReaderMethod(Method method) {
+		List<Object[]> list = new ArrayList<Object[]>();
+		String pathname = "src" + File.separator + "test" + File.separator + "resources" + File.separator
+				+ method.getDeclaringClass().getSimpleName() + File.separator + "dataproviders" + File.separator
+				+ method.getName() + ".csv";
+
+		File file = new File(pathname);
+		try {
+			CSVReader reader = new CSVReader(new FileReader(file));
+			String[] keys = reader.readNext();
+			if (keys != null) {
+				String[] dataParts;
+				while ((dataParts = reader.readNext()) != null) {
+					if (method.getName().equals(dataParts[1]) || method.getName().contains(dataParts[1])) {
+						Map<String, String> testData = new HashMap<String, String>();
+						for (int i = 0; i < keys.length; i++) {
+							testData.put(keys[i], dataParts[i]);
+						}
+						list.add(new Object[] { testData });
+					}
+				}
+			}
+			reader.close();
+		} catch (FileNotFoundException e) {
+			throw new RuntimeException("File " + pathname + " was not found.\n" + e.getStackTrace().toString());
+		} catch (IOException e) {
+			throw new RuntimeException("Could not read " + pathname + " file.\n" + e.getStackTrace().toString());
+		} catch (CsvValidationException e) {
+			throw new RuntimeException(
+					"Could not read next line in csv file" + pathname + "\n" + e.getStackTrace().toString());
+		}
+
+		return list.iterator();
+	}
+
+	// this dataprovider search for method in the same file
+	@DataProvider(name = "csvReaderMethodFile", parallel = false)
+	public static Iterator<Object[]> csvReaderMethodFile(Method method) {
+		List<Object[]> list = new ArrayList<Object[]>();
+		String pathname = "src" + File.separator + "test" + File.separator + "resources" + File.separator
+				+ method.getDeclaringClass().getSimpleName() + File.separator + "dataproviders" + File.separator
 				+ method.getDeclaringClass().getSimpleName() + ".csv";
 
 		File file = new File(pathname);
@@ -92,14 +205,15 @@ public class CsvDataProviders {
 			if (keys != null) {
 				String[] dataParts;
 				while ((dataParts = reader.readNext()) != null) {
-					if (method.getName().equals(dataParts[1])||method.getName().contains(dataParts[1])) { // search for method name
-						Map<String, String> testData = new HashMap<String, String>();
-						for (int i = 0; i < keys.length; i++) {
-
-							testData.put(keys[i], dataParts[i]);
-
+					String todo = dataParts[0];
+					if (todo.contentEquals("TRUE")) {
+						if (method.getName().equals(dataParts[1]) || method.getName().contains(dataParts[1])) {
+							Map<String, String> testData = new HashMap<String, String>();
+							for (int i = 0; i < keys.length; i++) {
+								testData.put(keys[i], dataParts[i]);
+							}
+							list.add(new Object[] { testData });
 						}
-						list.add(new Object[] { testData });
 					}
 				}
 			}
@@ -115,4 +229,45 @@ public class CsvDataProviders {
 
 		return list.iterator();
 	}
+
+	// this dataprovider delivers a list (list of Maps) of lists
+	@DataProvider(name = "csvReaderMatrix", parallel = false)
+	public static Iterator<Object[]> csvReaderMatrix(Method method, ITestContext testContext) {
+		List<Object[]> list = new ArrayList<Object[]>();
+		List<Map<String, String>> dataList = new ArrayList<Map<String, String>>();
+		String pathname = "src" + File.separator + "test" + File.separator + "resources" + File.separator
+				+ method.getDeclaringClass().getSimpleName() + File.separator + "dataproviders" + File.separator
+				+ method.getName() + ".csv";
+
+		File file = new File(pathname);
+		try {
+			CSVReader reader = new CSVReader(new FileReader(file));
+			String[] keys = reader.readNext();
+			if (keys != null) {
+				String[] dataParts;
+				while ((dataParts = reader.readNext()) != null) {
+					String todo = dataParts[0];
+					if (todo.contentEquals("TRUE")) {
+						Map<String, String> testData = new HashMap<String, String>();
+						for (int i = 0; i < keys.length; i++) {
+							testData.put(keys[i], dataParts[i]);
+						}
+						dataList.add(testData);
+					}
+				}
+				list.add(new Object[] { dataList });
+			}
+			reader.close();
+		} catch (FileNotFoundException e) {
+			throw new RuntimeException("File " + pathname + " was not found.\n" + e.getStackTrace().toString());
+		} catch (IOException e) {
+			throw new RuntimeException("Could not read " + pathname + " file.\n" + e.getStackTrace().toString());
+		} catch (CsvValidationException e) {
+			throw new RuntimeException(
+					"Could not read next line in csv file" + pathname + "\n" + e.getStackTrace().toString());
+		}
+
+		return list.iterator();
+	}
+
 }
