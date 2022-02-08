@@ -32,8 +32,8 @@ public class CsvDataProviders {
 	 * 
 	 * if the parallel argument is false then the tests are run sequentially
 	 */
-
-	@DataProvider(name = "csvReader", parallel = false)
+	
+	@DataProvider(name = "csvReader", parallel = true)
 	public static Iterator<Object[]> csvReader(Method method) {
 		List<Object[]> list = new ArrayList<Object[]>();
 		String pathname = "src" + File.separator + "test" + File.separator + "resources" + File.separator

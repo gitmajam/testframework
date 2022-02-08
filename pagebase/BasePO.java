@@ -11,6 +11,7 @@ import org.apache.logging.log4j.Logger;
 import org.openqa.selenium.Alert;
 import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
+import org.openqa.selenium.Keys;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebDriverException;
 import org.openqa.selenium.WebElement;
@@ -50,7 +51,7 @@ public abstract class BasePO<T> {
 		return pageSupplier;
 	}
 
-	// simple click method without return's object
+	// simple click method without return's supplier object
 	public T click() {
 		GUtils.waitForVisibilityOf(locator, 10, driver.get());
 		GUtils.waitForClickableOf(locator, 10, driver.get());
@@ -59,12 +60,13 @@ public abstract class BasePO<T> {
 		} catch (Exception e) {
 			JavascriptExecutor executor = (JavascriptExecutor) driver.get();
 			executor.executeScript("arguments[0].click();", find(locator));
-			log.info("click por javascript : " + locator );
+			log.info("click por javascript : " + locator);
 		}
 		GUtils.waitForPageToLoad(driver.get());
 		return (T) this;
 	}
-	// click with delay
+
+	// click with delay before
 	public T click(Integer miliSeconds) {
 		try {
 			Thread.sleep(miliSeconds);
@@ -78,7 +80,7 @@ public abstract class BasePO<T> {
 		} catch (Exception e) {
 			JavascriptExecutor executor = (JavascriptExecutor) driver.get();
 			executor.executeScript("arguments[0].click();", find(locator));
-			log.info("click por javascript : " + locator );
+			log.info("click por javascript : " + locator);
 		}
 		GUtils.waitForPageToLoad(driver.get());
 		return (T) this;
@@ -95,6 +97,41 @@ public abstract class BasePO<T> {
 		Actions actions = new Actions(driver.get());
 		GUtils.waitForVisibilityOf(locator, 5, driver.get());
 		actions.moveToElement(find(locator)).perform();
+		return (T) this;
+	}
+
+	// slider element
+	public T moveSlider(int times, String key) {
+		switch (key) {
+		case "LEFT":
+			for (int i = 0; i < times; i++) {
+				GUtils.waitForVisibilityOf(locator, 5, driver.get());
+				find(locator).sendKeys(Keys.ARROW_LEFT);
+			}
+			break;
+		case "RIGHT":
+			for (int i = 0; i < times; i++) {
+				GUtils.waitForVisibilityOf(locator, 5, driver.get());
+				find(locator).sendKeys(Keys.ARROW_RIGHT);
+			}
+			break;
+		case "STAY":
+			GUtils.waitForVisibilityOf(locator, 5, driver.get());
+			find(locator).sendKeys(Keys.ARROW_RIGHT);
+			find(locator).sendKeys(Keys.ARROW_LEFT);
+			break;
+		default:
+			log.info("Key word is not valid");
+			break;
+		}
+		return (T) this;
+	}
+
+	// slider element
+	public T waitForTextChange() {
+		String currentText = find(locator).getText().trim();
+		new WebDriverWait(driver.get(), 20).until(
+				ExpectedConditions.not(ExpectedConditions.textToBePresentInElementLocated(locator, currentText)));
 		return (T) this;
 	}
 
@@ -118,14 +155,14 @@ public abstract class BasePO<T> {
 		driver.get().switchTo().activeElement();
 		return (T) this;
 	}
-	
+
 	public T acceptAlert() {
 		try {
-		    WebDriverWait wait = new WebDriverWait(driver.get(), 5);
-		    Alert alert = wait.until(ExpectedConditions.alertIsPresent());
-		    alert.accept();
+			WebDriverWait wait = new WebDriverWait(driver.get(), 5);
+			Alert alert = wait.until(ExpectedConditions.alertIsPresent());
+			alert.accept();
 		} catch (Exception e) {
-		    log.info(e);
+			log.info(e);
 		}
 		return (T) this;
 	}
