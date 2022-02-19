@@ -6,6 +6,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.lang.reflect.Method;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -20,6 +21,9 @@ import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 import org.openqa.selenium.OutputType;
 import org.openqa.selenium.TakesScreenshot;
 import org.openqa.selenium.WebDriver;
@@ -54,9 +58,9 @@ public class TestUtilities {
 		GUtils.waitForPageToLoad(driver.get());
 		return pageSupplier;
 	}
-	
-	//open an url with a delay of 2 seconds
-	public <T extends BasePO<T>> Supplier<T> openUrl(Supplier<T> pageSupplier,long delay) {
+
+	// open an url with a delay of 2 seconds
+	public <T extends BasePO<T>> Supplier<T> openUrl(Supplier<T> pageSupplier, long delay) {
 		driver.get().get(pageSupplier.get().getPageUrl());
 		GUtils.waitForPageToLoad(driver.get());
 		sleep(delay);
@@ -97,6 +101,22 @@ public class TestUtilities {
 	/** Current time in HHmmssSSS */
 	protected String getSystemTime() {
 		return "-" + new SimpleDateFormat("HHmmssSSS").format(new Date());
+	}
+
+	// provide credentials from the credentials csv file at the default path
+	public Map<String, String> readCredentials() {
+		String credentialsPath = System.getProperty("user.dir") + File.separator + "src" + File.separator + "test"
+				+ File.separator + "resources" + File.separator + "credentials" + File.separator + "credentials.csv";
+		Iterator<Map<String, String>> dataSet;
+		dataSet = csvReader(credentialsPath);
+		Map<String, String> dataMap = null;
+		while (dataSet.hasNext()) {
+			dataMap = dataSet.next();
+			if (dataMap.get("environment").equals(PropertiesFile.getProperties("env"))) {
+				return dataMap;
+			}
+		}
+		return null;
 	}
 
 	public Iterator<Map<String, String>> csvReader(String pathname) {
@@ -210,5 +230,101 @@ public class TestUtilities {
 		my_csv_output.close(); // close the CSV file
 		// we created CSV from XLSX!
 		input_document.close(); // close xlsx file
+	}
+
+	public void csvWriter(String[] keys, String[] value) {
+
+		String tempFilePath = System.getProperty("user.dir") + File.separator + "src" + File.separator + "test"
+				+ File.separator + "resources" + File.separator + "temp.csv";
+
+		File file = new File(tempFilePath);
+		if (file.exists()) {
+			log.info("removing temp.scv file");
+			file.delete();
+		} else {
+			log.info("creating temp.scv file");
+			file.mkdirs();
+		}
+
+		try {
+			FileWriter outputfile = new FileWriter(file);
+			CSVWriter writer = new CSVWriter(outputfile);
+
+			// create a List which contains String array
+			List<String[]> data = new ArrayList<String[]>();
+			data.add(keys);
+			data.add(value);
+			writer.writeAll(data);
+
+			// closing writer connection
+			writer.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+
+	@SuppressWarnings("unchecked")
+	public void jsonFileWriter(Method method, String key, String value) {
+
+		String tempFilePath = System.getProperty("user.dir") + File.separator + "src" + File.separator + "test"
+				+ File.separator + "resources" + File.separator + "jsonData.json";
+
+		String className = method.getDeclaringClass().getSimpleName();
+		JSONObject testObj = new JSONObject();
+		JSONObject classObj = new JSONObject();
+		testObj.put(key, value);
+		classObj.put(className, testObj);
+
+		File file = new File(tempFilePath);
+
+		if (file.exists()) {
+			log.info("removing temp.scv file");
+			file.delete();
+		} else {
+			log.info("creating temp.scv file");
+			try {
+				file.createNewFile();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+
+		try {
+			FileWriter outputfile = new FileWriter(file);
+			outputfile.write(classObj.toJSONString());
+			outputfile.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+
+	public String jsonFileReader(String className, String key) {
+
+		String tempFilePath = System.getProperty("user.dir") + File.separator + "src" + File.separator + "test"
+				+ File.separator + "resources" + File.separator + "jsonData.json";
+		
+		File file = new File(tempFilePath);
+		JSONParser jsonParser = new JSONParser();
+
+		try (FileReader reader = new FileReader(file)) {
+			// Read JSON file
+			Object obj = jsonParser.parse(reader);
+			JSONObject classObj = (JSONObject) obj;
+			JSONObject classNameObj = (JSONObject) classObj.get(className);
+			log.info(classNameObj);
+			String value = (String) classNameObj.get(key);
+			log.info(value);
+		return value;
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		} catch (ParseException e) {
+			e.printStackTrace();
+		}
+		return null;
 	}
 }
