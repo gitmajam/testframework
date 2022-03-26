@@ -1,11 +1,15 @@
 package com.tribu.qaselenium.testframework.pagebase;
 
+import java.io.File;
 import java.lang.reflect.Field;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Iterator;
+import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.Optional;
 import java.util.Set;
-import java.util.function.Function;
+import java.util.function.Consumer;
 
 import org.apache.logging.log4j.Logger;
 import org.openqa.selenium.Alert;
@@ -17,15 +21,16 @@ import org.openqa.selenium.WebDriverException;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
-import org.openqa.selenium.support.ui.Sleeper;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
+import com.google.common.base.Predicate;
 import com.google.common.base.Supplier;
 import com.tribu.qaselenium.testframework.testbase.DriverFactory;
 import com.tribu.qaselenium.testframework.testbase.TestLoggerFactory;
 
 public abstract class BasePO<T> {
 
+	// locator work variable
 	protected By locator;
 	// Page title for switch to this page
 	protected String PTitle;
@@ -38,25 +43,15 @@ public abstract class BasePO<T> {
 	protected Logger log = TestLoggerFactory.getInstance().getLogger();
 	protected Supplier<WebDriver> driver = () -> DriverFactory.getInstance().getDriver();
 
-	public <R> Supplier<R> click(Supplier<R> pageSupplier) {
-		GUtils.waitForVisibilityOf(locator, 5, driver.get());
-		try {
-			find(locator).click();
-		} catch (Exception e) {
-			JavascriptExecutor executor = (JavascriptExecutor) driver.get();
-			executor.executeScript("arguments[0].click();", find(locator));
-			log.info("click por javascript");
-		}
-		GUtils.waitForPageToLoad(driver.get());
-		return pageSupplier;
-	}
+	protected String resourcesPath = System.getProperty("user.dir") + File.separator + "src" + File.separator + "test"
+			+ File.separator + "resources" + File.separator;
 
 	// simple click method without return's supplier object
 	public T click() {
 		GUtils.waitForVisibilityOf(locator, 10, driver.get());
 		GUtils.waitForClickableOf(locator, 10, driver.get());
 		try {
-			find(locator).click();
+			driver.get().findElement(locator).click();
 		} catch (Exception e) {
 			JavascriptExecutor executor = (JavascriptExecutor) driver.get();
 			executor.executeScript("arguments[0].click();", find(locator));
@@ -73,16 +68,26 @@ public abstract class BasePO<T> {
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
+		return click();
+	}
+
+	// ths click method returns a supplier
+	public <R> Supplier<R> click(Supplier<R> pageSupplier) {
+		click();
+		return pageSupplier;
+	}
+
+	// click on a webelement from a webelement list found by xpath pattern
+	public T click(String text) {
 		GUtils.waitForVisibilityOf(locator, 10, driver.get());
 		GUtils.waitForClickableOf(locator, 10, driver.get());
+		List<WebElement> list = driver.get().findElements(locator);
 		try {
-			find(locator).click();
-		} catch (Exception e) {
-			JavascriptExecutor executor = (JavascriptExecutor) driver.get();
-			executor.executeScript("arguments[0].click();", find(locator));
-			log.info("click por javascript : " + locator);
+			list.stream().filter(e -> e.getText().trim().equals(text)).findFirst().get().click();
+		} catch (NoSuchElementException e) {
+			log.info("web element not found");
+			e.printStackTrace();
 		}
-		GUtils.waitForPageToLoad(driver.get());
 		return (T) this;
 	}
 
@@ -238,10 +243,18 @@ public abstract class BasePO<T> {
 		return find(locator).isDisplayed();
 	}
 
-	// to verify if element is displayed, if not, it returns an Exception to be
-	// handle by the caller
-	public Boolean existElement() throws Exception {
-		return driver.get().findElement(locator).isDisplayed();
+	// to verify if element is displayed
+	public Boolean existElement() {
+		List<WebElement> list = driver.get().findElements(locator);
+		return !list.isEmpty();
+	}
+
+	public T existElement(Runnable runnable) {
+		List<WebElement> list = driver.get().findElements(locator);
+		if (list.stream().filter(e -> e.isDisplayed()).findAny().orElse(null) != null) {
+			runnable.run();
+		}
+		return (T) this;
 	}
 
 	public Boolean verifyImage() {

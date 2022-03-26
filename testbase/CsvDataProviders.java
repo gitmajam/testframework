@@ -4,6 +4,8 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -32,7 +34,7 @@ public class CsvDataProviders {
 	 * 
 	 * if the parallel argument is false then the tests are run sequentially
 	 */
-	
+
 	@DataProvider(name = "csvReader", parallel = true)
 	public static Iterator<Object[]> csvReader(Method method) {
 		List<Object[]> list = new ArrayList<Object[]>();
@@ -118,7 +120,7 @@ public class CsvDataProviders {
 		String environment = PropertiesFile.getProperties("env");
 		List<Object[]> list = new ArrayList<Object[]>();
 		String pathname = "src" + File.separator + "test" + File.separator + "resources" + File.separator
-				+ "Credentials" + File.separator + "credentials.csv";
+				+ "credentials" + File.separator + "credentials.csv";
 
 		File file = new File(pathname);
 		try {
@@ -155,7 +157,7 @@ public class CsvDataProviders {
 
 	// this dataprovider search for method, name with a diferent file per method
 	@DataProvider(name = "csvReaderMethod", parallel = false)
-	public static Iterator<Object[]> csvReaderMethod(Method method) {
+	public static Iterator<Object[]> csvReaderMethod(Method method, String browser) {
 		List<Object[]> list = new ArrayList<Object[]>();
 		String pathname = "src" + File.separator + "test" + File.separator + "resources" + File.separator
 				+ method.getDeclaringClass().getSimpleName() + File.separator + "dataproviders" + File.separator
@@ -193,12 +195,24 @@ public class CsvDataProviders {
 	// this dataprovider search for method in the same file
 	@DataProvider(name = "csvReaderMethodFile", parallel = false)
 	public static Iterator<Object[]> csvReaderMethodFile(Method method) {
+		String path = null;
+		
+		//accesing to classfield from caller class by reflection
+		try {
+			Field field = method.getDeclaringClass().getDeclaredField("dataProviderFilePath");
+			Object  testObj = method.getDeclaringClass().getDeclaredConstructor().newInstance();
+			path =  (String) field.get(testObj);	
+		} catch (Exception e1) {
+			e1.printStackTrace();
+		} 
+		
+		//provider
 		List<Object[]> list = new ArrayList<Object[]>();
 		String pathname = "src" + File.separator + "test" + File.separator + "resources" + File.separator
 				+ method.getDeclaringClass().getSimpleName() + File.separator + "dataproviders" + File.separator
 				+ method.getDeclaringClass().getSimpleName() + ".csv";
 
-		File file = new File(pathname);
+		File file = new File(path);
 		try {
 			CSVReader reader = new CSVReader(new FileReader(file));
 			String[] keys = reader.readNext();
@@ -207,7 +221,7 @@ public class CsvDataProviders {
 				while ((dataParts = reader.readNext()) != null) {
 					String todo = dataParts[0];
 					if (todo.contentEquals("TRUE")) {
-						if (method.getName().equals(dataParts[1]) || method.getName().contains(dataParts[1])) {
+						if (method.getName().equals(dataParts[1]) || method.getName().contains(dataParts[1]) || method.getName().equals("")) {
 							Map<String, String> testData = new HashMap<String, String>();
 							for (int i = 0; i < keys.length; i++) {
 								testData.put(keys[i], dataParts[i]);
@@ -219,12 +233,12 @@ public class CsvDataProviders {
 			}
 			reader.close();
 		} catch (FileNotFoundException e) {
-			throw new RuntimeException("File " + pathname + " was not found.\n" + e.getStackTrace().toString());
+			throw new RuntimeException("File " + path + " was not found.\n" + e.getStackTrace().toString());
 		} catch (IOException e) {
-			throw new RuntimeException("Could not read " + pathname + " file.\n" + e.getStackTrace().toString());
+			throw new RuntimeException("Could not read " + path + " file.\n" + e.getStackTrace().toString());
 		} catch (CsvValidationException e) {
 			throw new RuntimeException(
-					"Could not read next line in csv file" + pathname + "\n" + e.getStackTrace().toString());
+					"Could not read next line in csv file" + path + "\n" + e.getStackTrace().toString());
 		}
 
 		return list.iterator();

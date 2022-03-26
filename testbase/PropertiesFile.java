@@ -36,7 +36,7 @@ public class PropertiesFile {
 					projectPath + "/src/test/resources/configfile/config.properties");
 			// Load properties file
 			prop.setProperty(key, propertieValue);
-			// store values i properties file
+			// store values in properties file
 			prop.store(output, propertieTitle);
 		} catch (Exception exp) {
 			System.out.println(exp.getMessage());

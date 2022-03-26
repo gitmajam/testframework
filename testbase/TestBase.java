@@ -18,14 +18,13 @@ public class TestBase extends TestUtilities {
 	public void setUp(Method method, @Optional("chrome") String browser, ITestContext context) {
 		testSuiteName = context.getSuite().getName();
 		testName = context.getCurrentXmlTest().getName();
-		// testMethodName = method.getName();
 
 		driverFactory = DriverFactory.getInstance();
 		loggerFactory = TestLoggerFactory.getInstance();
 
 		loggerFactory.createLogger(testName);
 		log = loggerFactory.getLogger();
-		log.info("run setUp Method");
+		log.info("* " + method.getName()+ " *");
 		/* driverFactory creates a new instance of webdriver "browser" */
 		driverFactory.createDriver(browser);
 		log.info("drive recien creado = " + driverFactory.getDriver().hashCode());

@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.lang.reflect.Method;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -27,6 +28,7 @@ import org.json.simple.parser.ParseException;
 import org.openqa.selenium.OutputType;
 import org.openqa.selenium.TakesScreenshot;
 import org.openqa.selenium.WebDriver;
+import org.testng.ITestContext;
 
 import com.google.common.base.Supplier;
 import com.opencsv.CSVReader;
@@ -41,8 +43,13 @@ public class TestUtilities {
 	protected String testName;
 	protected String testMethodName;
 	protected Logger log;
+	protected String dataProviderFilePath;
 
 	protected Supplier<WebDriver> driver = () -> DriverFactory.getInstance().getDriver();
+	
+	public String getDataProviderFilePath() {
+		return dataProviderFilePath;
+	}
 
 	// Static Sleep
 	protected void sleep(long millis) {
@@ -54,6 +61,7 @@ public class TestUtilities {
 	}
 
 	public <T extends BasePO<T>> Supplier<T> openUrl(Supplier<T> pageSupplier) {
+		log.info("opening url : " + pageSupplier.get().getPageUrl());
 		driver.get().get(pageSupplier.get().getPageUrl());
 		GUtils.waitForPageToLoad(driver.get());
 		return pageSupplier;
@@ -61,6 +69,7 @@ public class TestUtilities {
 
 	// open an url with a delay of 2 seconds
 	public <T extends BasePO<T>> Supplier<T> openUrl(Supplier<T> pageSupplier, long delay) {
+		log.info("opening url : " + pageSupplier.get().getPageUrl());
 		driver.get().get(pageSupplier.get().getPageUrl());
 		GUtils.waitForPageToLoad(driver.get());
 		sleep(delay);
@@ -97,6 +106,20 @@ public class TestUtilities {
 	protected String getTodaysDate() {
 		return "-" + new SimpleDateFormat("yyyyMMdd").format(new Date());
 	}
+	
+	/** Todays date plus days */
+	protected String getDatePlus(int days) {
+		Date dt = new Date();
+		Calendar c = Calendar.getInstance();
+		c.setTime(dt);
+		c.add(Calendar.DATE, days);
+		dt = c.getTime();
+		return new SimpleDateFormat("MM/dd/yyyy").format(dt);
+	}
+	
+	protected String getCurrentYear() {
+		return "-" + new SimpleDateFormat("yyyy").format(new Date());
+	}
 
 	/** Current time in HHmmssSSS */
 	protected String getSystemTime() {
@@ -106,7 +129,7 @@ public class TestUtilities {
 	// provide credentials from the credentials csv file at the default path
 	public Map<String, String> readCredentials() {
 		String credentialsPath = System.getProperty("user.dir") + File.separator + "src" + File.separator + "test"
-				+ File.separator + "resources" + File.separator + "credentials" + File.separator + "credentials.csv";
+				+ File.separator + "resources" + File.separator + "providerFiles" + File.separator + "credentials.csv";
 		Iterator<Map<String, String>> dataSet;
 		dataSet = csvReader(credentialsPath);
 		Map<String, String> dataMap = null;
@@ -286,7 +309,6 @@ public class TestUtilities {
 			try {
 				file.createNewFile();
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
@@ -296,28 +318,109 @@ public class TestUtilities {
 			outputfile.write(classObj.toJSONString());
 			outputfile.close();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
 
-	public String jsonFileReader(String className, String key) {
+	@SuppressWarnings("unchecked")
+	protected void editTestJSON(Method method, ITestContext context, String key, String value) {
+
+		String suiteName = context.getSuite().getName();
+		String testName = context.getCurrentXmlTest().getName();
+		String className = method.getDeclaringClass().getSimpleName();
+		
+		JSONObject suiteObj = new JSONObject();
+		JSONObject testObj = new JSONObject();
+		JSONObject classObj = new JSONObject();
+		JSONObject jsonObj = new JSONObject();
+		
+		// find file
+		String tempFilePath = System.getProperty("user.dir") + File.separator + "src" + File.separator + "test"
+				+ File.separator + "resources" + File.separator + "jsonData.json";
+
+		File file = new File(tempFilePath);
+			
+		if (!file.exists()) {
+			log.info("creating json file");
+			try {
+				file.createNewFile();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		} else {
+			// get JSON
+			try (FileReader reader = new FileReader(file)) {
+				// Read JSON file
+				JSONParser jsonParser = new JSONParser();
+				jsonObj = (JSONObject) jsonParser.parse(reader);
+
+				if (((JSONObject) jsonObj.get(suiteName)) != null) {
+					suiteObj = (JSONObject) jsonObj.get(suiteName);
+					if (((JSONObject) suiteObj.get(testName)) != null) {
+						testObj = (JSONObject) suiteObj.get(testName);
+						if (((JSONObject) testObj.get(className)) != null) {
+							classObj = (JSONObject) testObj.get(className);
+						}
+					}
+				}
+			} catch (FileNotFoundException e) {
+				e.printStackTrace();
+			} catch (IOException e) {
+				e.printStackTrace();
+			} catch (ParseException e) {
+				e.printStackTrace();
+			}
+		}
+
+		classObj.put(key, value);
+		testObj.put(className, classObj);
+		suiteObj.put(testName, testObj);
+		jsonObj.put(suiteName, suiteObj);
+		
+		try {
+			FileWriter outputfile = new FileWriter(file);
+			outputfile.write(jsonObj.toJSONString());
+			outputfile.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
+	public String jsonFileReader(ITestContext context, String test, String className, String key) {
 
 		String tempFilePath = System.getProperty("user.dir") + File.separator + "src" + File.separator + "test"
 				+ File.separator + "resources" + File.separator + "jsonData.json";
-		
-		File file = new File(tempFilePath);
-		JSONParser jsonParser = new JSONParser();
 
+		File file = new File(tempFilePath);
+		Object mainObj;
+
+		String suiteName = context.getSuite().getName();
+		String testName = test;
+
+		JSONObject jsonObj = new JSONObject();
+		JSONObject suiteObj = new JSONObject();
+		JSONObject testObj = new JSONObject();
+		JSONObject classObj = new JSONObject();
+
+		// get JSON
 		try (FileReader reader = new FileReader(file)) {
 			// Read JSON file
-			Object obj = jsonParser.parse(reader);
-			JSONObject classObj = (JSONObject) obj;
-			JSONObject classNameObj = (JSONObject) classObj.get(className);
-			log.info(classNameObj);
-			String value = (String) classNameObj.get(key);
-			log.info(value);
-		return value;
+			JSONParser jsonParser = new JSONParser();
+			mainObj = jsonParser.parse(reader);
+			jsonObj = (JSONObject) mainObj;
+
+			if (((JSONObject) jsonObj.get(suiteName)) != null) {
+				suiteObj = (JSONObject) jsonObj.get(suiteName);
+				if (((JSONObject) suiteObj.get(testName)) != null) {
+					testObj = (JSONObject) suiteObj.get(testName);
+					if (((JSONObject) testObj.get(className)) != null) {
+						classObj = (JSONObject) testObj.get(className);
+						if (((String) classObj.get(key)) != null) {
+							return (String) classObj.get(key);
+						}
+					}
+				}
+			}
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
