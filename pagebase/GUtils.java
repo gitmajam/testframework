@@ -16,7 +16,7 @@ import com.tribu.qaselenium.testframework.testbase.TestLoggerFactory;
 public class GUtils {
 
 	protected static Logger log = TestLoggerFactory.getInstance().getLogger();
-	protected static Supplier<WebDriver> driver = () -> DriverFactory.getInstance().getDriver();
+	protected static Supplier<WebDriver> driverFunc = () -> DriverFactory.getInstance().getDriver();
 
 	// Find element using given locator
 	protected static WebElement find(By locator, WebDriver driver) {
@@ -28,35 +28,48 @@ public class GUtils {
 		}
 	}
 	
-	public static void waitForClickableOf(By locator, Integer timeOutInSeconds,WebDriver driver) {
-		timeOutInSeconds = timeOutInSeconds != null ? timeOutInSeconds : 30;
-		new WebDriverWait(driver, timeOutInSeconds).until(ExpectedConditions.elementToBeClickable(locator));
+	public static void waitForClickableOf(WebElement webElement) {
+		new WebDriverWait(driverFunc.get(), 10).until(ExpectedConditions.elementToBeClickable(webElement));
 	}
-
 	// Wait for given number of seconds for element with given locator to be visible
 	// on the page, Explicit wait.
-	public static void waitForVisibilityOf(By locator, Integer timeOutInSeconds,WebDriver driver) {
+	public static void waitForVisibilityOf(WebElement webElement) {
+		new WebDriverWait(driverFunc.get(), 10).until(ExpectedConditions.visibilityOf(webElement));
+	}
+	
+	// Wait for given number of seconds for element with given locator to be visible
+	// on the page, Explicit wait.
+	public static void waitForPresenceOfminimunElements(By locator, Integer timeOutInSeconds, Integer minElements) {
 		timeOutInSeconds = timeOutInSeconds != null ? timeOutInSeconds : 30;
-		new WebDriverWait(driver, timeOutInSeconds).until(ExpectedConditions.visibilityOfElementLocated(locator));
+		new WebDriverWait(driverFunc.get(), timeOutInSeconds).until(ExpectedConditions.numberOfElementsToBeMoreThan(locator, minElements-1));
 	}
 
 	// Wait for given number of seconds for element with given locator to be
 	// invisible
 	// on the page, Explicit wait.
-	public static void waitForNotVisibilityOf(By locator, Integer timeOutInSeconds, WebDriver driver) {
-		timeOutInSeconds = timeOutInSeconds != null ? timeOutInSeconds : 30;
-		new WebDriverWait(driver, timeOutInSeconds)
-				.until(ExpectedConditions.invisibilityOfElementLocated(locator));
+	public static void waitForNotVisibilityOf(WebElement webElement) {
+		new WebDriverWait(driverFunc.get(), 10).until(ExpectedConditions.invisibilityOf(webElement));
+	}
+	
+	public static void waitAttributes(WebElement webElement,String... attributes) {
+		String attribute = attributes.length > 0 ? attributes[0] : null;
+		String value = attributes.length > 0 ? attributes[1] : null;
+		if (attribute != null) {
+			new WebDriverWait(driverFunc.get(), 10)
+					.until(ExpectedConditions.attributeToBe(webElement, "aria-selected", "true"));
+			log.info("attribute : " + attribute);
+			log.info("value : " + value);
+		}
 	}
 
 	// Waiting for page is whole loaded
-	public static void waitForPageToLoad(WebDriver driver) {
+	public static void waitForPageToLoad() {
 		try {
 			/*
 			 * lambda function, verifies if the document.readyState is complete, has a
 			 * timeout of 30 seconds
 			 */
-			new WebDriverWait(driver, 30).until(webDriver -> ((JavascriptExecutor) webDriver)
+			new WebDriverWait(driverFunc.get(), 30).until(webDriver -> ((JavascriptExecutor) webDriver)
 					.executeScript("return document.readyState").equals("complete"));
 		} catch (Exception e) {
 			log.info("WaitForPageLoad timeout");

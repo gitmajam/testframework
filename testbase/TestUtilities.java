@@ -45,8 +45,8 @@ public class TestUtilities {
 	protected Logger log;
 	protected String dataProviderFilePath;
 
-	protected Supplier<WebDriver> driver = () -> DriverFactory.getInstance().getDriver();
-	
+	protected Supplier<WebDriver> driverFunc = () -> DriverFactory.getInstance().getDriver();
+
 	public String getDataProviderFilePath() {
 		return dataProviderFilePath;
 	}
@@ -62,23 +62,23 @@ public class TestUtilities {
 
 	public <T extends BasePO<T>> Supplier<T> openUrl(Supplier<T> pageSupplier) {
 		log.info("opening url : " + pageSupplier.get().getPageUrl());
-		driver.get().get(pageSupplier.get().getPageUrl());
-		GUtils.waitForPageToLoad(driver.get());
+		driverFunc.get().get(pageSupplier.get().getPageUrl());
+		GUtils.waitForPageToLoad();
 		return pageSupplier;
 	}
 
 	// open an url with a delay of 2 seconds
 	public <T extends BasePO<T>> Supplier<T> openUrl(Supplier<T> pageSupplier, long delay) {
 		log.info("opening url : " + pageSupplier.get().getPageUrl());
-		driver.get().get(pageSupplier.get().getPageUrl());
-		GUtils.waitForPageToLoad(driver.get());
+		driverFunc.get().get(pageSupplier.get().getPageUrl());
+		GUtils.waitForPageToLoad();
 		sleep(delay);
 		return pageSupplier;
 	}
 
 	/** Take screenshot file png. return path */
 	protected String takeScreenshot(String fileName) {
-		File scrFile = ((TakesScreenshot) driver.get()).getScreenshotAs(OutputType.FILE);
+		File scrFile = ((TakesScreenshot) driverFunc.get()).getScreenshotAs(OutputType.FILE);
 		String path = System.getProperty("user.dir") + File.separator + "test-output" + File.separator + "screenshots"
 				+ File.separator + getTodaysDate() + File.separator + testSuiteName + File.separator + testName
 				+ File.separator + testMethodName + File.separator + getSystemTime() + " " + fileName + ".png";
@@ -94,7 +94,7 @@ public class TestUtilities {
 	protected String takeScreenshot() {
 		String scrFileEncoded = "";
 		try {
-			scrFileEncoded = ((TakesScreenshot) driver.get()).getScreenshotAs(OutputType.BASE64);
+			scrFileEncoded = ((TakesScreenshot) driverFunc.get()).getScreenshotAs(OutputType.BASE64);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -106,7 +106,7 @@ public class TestUtilities {
 	protected String getTodaysDate() {
 		return "-" + new SimpleDateFormat("yyyyMMdd").format(new Date());
 	}
-	
+
 	/** Todays date plus days */
 	protected String getDatePlus(int days) {
 		Date dt = new Date();
@@ -116,7 +116,7 @@ public class TestUtilities {
 		dt = c.getTime();
 		return new SimpleDateFormat("MM/dd/yyyy").format(dt);
 	}
-	
+
 	protected String getCurrentYear() {
 		return "-" + new SimpleDateFormat("yyyy").format(new Date());
 	}
@@ -127,7 +127,7 @@ public class TestUtilities {
 	}
 
 	// provide credentials from the credentials csv file at the default path
-	public Map<String, String> readCredentials() {
+	public Map<String, String> readCredentials(String profile) {
 		String credentialsPath = System.getProperty("user.dir") + File.separator + "src" + File.separator + "test"
 				+ File.separator + "resources" + File.separator + "providerFiles" + File.separator + "credentials.csv";
 		Iterator<Map<String, String>> dataSet;
@@ -135,11 +135,14 @@ public class TestUtilities {
 		Map<String, String> dataMap = null;
 		while (dataSet.hasNext()) {
 			dataMap = dataSet.next();
-			if (dataMap.get("environment").equals(PropertiesFile.getProperties("env"))) {
-				return dataMap;
+			if (dataMap.get("profile").equals(profile)) {
+				if (dataMap.get("environment").equals(PropertiesFile.getProperties("env"))) {
+					return dataMap;
+				}
 			}
 		}
 		return null;
+
 	}
 
 	public Iterator<Map<String, String>> csvReader(String pathname) {
@@ -328,18 +331,18 @@ public class TestUtilities {
 		String suiteName = context.getSuite().getName();
 		String testName = context.getCurrentXmlTest().getName();
 		String className = method.getDeclaringClass().getSimpleName();
-		
+
 		JSONObject suiteObj = new JSONObject();
 		JSONObject testObj = new JSONObject();
 		JSONObject classObj = new JSONObject();
 		JSONObject jsonObj = new JSONObject();
-		
+
 		// find file
 		String tempFilePath = System.getProperty("user.dir") + File.separator + "src" + File.separator + "test"
 				+ File.separator + "resources" + File.separator + "jsonData.json";
 
 		File file = new File(tempFilePath);
-			
+
 		if (!file.exists()) {
 			log.info("creating json file");
 			try {
@@ -376,7 +379,7 @@ public class TestUtilities {
 		testObj.put(className, classObj);
 		suiteObj.put(testName, testObj);
 		jsonObj.put(suiteName, suiteObj);
-		
+
 		try {
 			FileWriter outputfile = new FileWriter(file);
 			outputfile.write(jsonObj.toJSONString());
