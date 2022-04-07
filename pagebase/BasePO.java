@@ -3,12 +3,11 @@ package com.tribu.qaselenium.testframework.pagebase;
 import java.io.File;
 import java.lang.reflect.Field;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.Set;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -19,7 +18,6 @@ import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.Keys;
 import org.openqa.selenium.SearchContext;
 import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebDriverException;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
@@ -63,7 +61,7 @@ public abstract class BasePO<T> {
 	 * normal findElement method.
 	 */
 	@SuppressWarnings("unchecked")
-	public T setWebElement(By by, Predicate<WebElement>... predicates) {
+	protected T setWebElement(By by, Predicate<WebElement>... predicates) {
 		this.locator = by;
 		WebDriverWait waitPresence = new WebDriverWait(driverFunc.get(), 10);
 		SearchContext searchContext = baseElementStatus ? BaseElement : driverFunc.get();
@@ -72,26 +70,41 @@ public abstract class BasePO<T> {
 			if (predicates.length > 0) {
 				Predicate<WebElement> predicate = predicates[0];
 				waitPresence.until(ExpectedConditions.presenceOfAllElementsLocatedBy(locator));
-				webElement = list.stream().filter(predicate).findFirst().get();
+				list = list.stream().filter(predicate).collect(Collectors.toList());
+				if (list.size() > 0) {
+					status = true;
+					webElement = list.stream().filter(predicate).findFirst().get();
+				} else {
+					status = false;
+					webElement = null;
+				}
 			} else {
 				webElement = searchContext.findElement(locator);
+				status = true;
 			}
-		}else {
+		} else {
 			status = false;
 			webElement = null;
 		}
 		return (T) this;
 	}
 
+	public By getLocator() {
+		return this.locator;
+	}
+	public WebElement getWebElement() {
+		return this.webElement;
+	}
+
 	// simple click method without return's supplier object
 	public T click() {
-		GUtils.waitForVisibilityOf(webElement);
-		GUtils.waitForClickableOf(webElement);
+		GUtils.waitForVisibilityOf(locator);
+		GUtils.waitForClickableOf(locator);
 		try {
 			webElement.click();
 		} catch (Exception e) {
 			JavascriptExecutor executor = (JavascriptExecutor) driverFunc.get();
-			executor.executeScript("arguments[0].click();", webElement);
+			executor.executeScript("arguments[0].click();", driverFunc.get().findElement(locator));
 			log.info("click por javascript : " + locator);
 		}
 
@@ -126,7 +139,7 @@ public abstract class BasePO<T> {
 		String centerElement = "var viewPortHeight = Math.max(document.documentElement.clientHeight, window.innerHeight || 0);"
 				+ "var elementTop = arguments[0].getBoundingClientRect().top;"
 				+ "window.scrollBy(0, elementTop-(viewPortHeight/2));";
-		((JavascriptExecutor) driverFunc.get()).executeScript(centerElement, webElement);
+		((JavascriptExecutor) driverFunc.get()).executeScript(centerElement, driverFunc.get().findElement(locator));
 		return (T) this;
 	}
 
@@ -150,7 +163,7 @@ public abstract class BasePO<T> {
 
 	// Type given text into element with given locator
 	public T type(String text) {
-		GUtils.waitForVisibilityOf(webElement);
+		GUtils.waitForVisibilityOf(locator);
 		webElement.sendKeys(text);
 		return (T) this;
 	}
@@ -162,14 +175,13 @@ public abstract class BasePO<T> {
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
-		log.info("path : " + text);
 		webElement.sendKeys(text);
 		return (T) this;
 	}
 
 	public T hoverElement() {
 		Actions actions = new Actions(driverFunc.get());
-		GUtils.waitForVisibilityOf(webElement);
+		GUtils.waitForVisibilityOf(locator);
 		actions.moveToElement(webElement).perform();
 		return (T) this;
 	}
@@ -179,18 +191,18 @@ public abstract class BasePO<T> {
 		switch (key) {
 		case "LEFT":
 			for (int i = 0; i < times; i++) {
-				GUtils.waitForVisibilityOf(webElement);
+				GUtils.waitForVisibilityOf(locator);
 				webElement.sendKeys(Keys.ARROW_LEFT);
 			}
 			break;
 		case "RIGHT":
 			for (int i = 0; i < times; i++) {
-				GUtils.waitForVisibilityOf(webElement);
+				GUtils.waitForVisibilityOf(locator);
 				webElement.sendKeys(Keys.ARROW_RIGHT);
 			}
 			break;
 		case "STAY":
-			GUtils.waitForVisibilityOf(webElement);
+			GUtils.waitForVisibilityOf(locator);
 			webElement.sendKeys(Keys.ARROW_RIGHT);
 			webElement.sendKeys(Keys.ARROW_LEFT);
 			break;
@@ -211,7 +223,7 @@ public abstract class BasePO<T> {
 
 	// Clear given text into element with given locator
 	public T clear() {
-		GUtils.waitForVisibilityOf(webElement);
+		GUtils.waitForVisibilityOf(locator);
 		webElement.clear();
 		return (T) this;
 	}
@@ -222,6 +234,11 @@ public abstract class BasePO<T> {
 
 	public T swichToFrame() {
 		driverFunc.get().switchTo().frame(webElement);
+		try {
+			Thread.sleep(500);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
 		return (T) this;
 	}
 
@@ -251,7 +268,7 @@ public abstract class BasePO<T> {
 			new WebDriverWait(driverFunc.get(), 15).until(
 					webDriver -> ((JavascriptExecutor) webDriver).executeScript("return arguments[0].complete && "
 							+ "typeof arguments[0].naturalWidth != \"undefined\" && " + "arguments[0].naturalWidth > 0",
-							webElement));
+							driverFunc.get().findElement(locator)));
 		} catch (Exception e) {
 			log.info("WaitForImage timeout");
 			throw (e);
@@ -267,7 +284,7 @@ public abstract class BasePO<T> {
 			new WebDriverWait(driverFunc.get(), 15).until(
 					webDriver -> ((JavascriptExecutor) webDriver).executeScript("return arguments[0].complete && "
 							+ "typeof arguments[0].naturalWidth != \"undefined\" && " + "arguments[0].naturalWidth > 0",
-							webElement));
+							driverFunc.get().findElement(locator)));
 		} catch (Exception e) {
 			log.info("WaitForImage timeout");
 			throw (e);
@@ -276,12 +293,12 @@ public abstract class BasePO<T> {
 	}
 
 	public T waitForVisibility() {
-		GUtils.waitForVisibilityOf(webElement);
+		GUtils.waitForVisibilityOf(locator);
 		return (T) this;
 	}
 
 	public T waitForNotVisibility() {
-		GUtils.waitForNotVisibilityOf(webElement);
+		GUtils.waitForNotVisibilityOf(locator);
 		return (T) this;
 	}
 
@@ -295,7 +312,7 @@ public abstract class BasePO<T> {
 
 	// looking for text inside other text using in asserts
 	public Boolean contains(String text) {
-		GUtils.waitForVisibilityOf(webElement);
+		GUtils.waitForVisibilityOf(locator);
 		return webElement.getText().contains(text);
 	}
 
@@ -303,31 +320,39 @@ public abstract class BasePO<T> {
 		return webElement.isDisplayed();
 	}
 
-	public T check(Predicate<WebElement> predicate) {
-		status = predicate.apply(webElement);
-		return (T) this;
-	}
-
-	public Boolean getStatus() {
+	public Boolean existElement() {
 		return this.status;
 	}
 
-	public T andThen(Runnable runnable) {
+	public T ifExist(Runnable runnable) {
 		if (status == true) {
 			runnable.run();
 		}
 		return (T) this;
 	}
+	
+	public T ifNotExist(Runnable runnable) {
+		if (status == false) {
+			runnable.run();
+		}
+		return (T) this;
+	}
 
-	public T assess(Consumer<Boolean> consumer) {
-		consumer.accept(status);
+	public T exec(Runnable runnable) {
+		runnable.run();
+		return (T) this;
+	}
+
+	public T assertExist(BiConsumer<Boolean, String> consumer) {
+		String message = existElement() ? "Element exist" : "Element doesn't exist";
+		consumer.accept(existElement(), message + " " + locator.toString());
 		return (T) this;
 	}
 
 	public Boolean verifyImage() {
 		Object result = ((JavascriptExecutor) driverFunc.get()).executeScript("return arguments[0].complete && "
 				+ "typeof arguments[0].naturalWidth != \"undefined\" && " + "arguments[0].naturalWidth > 0",
-				webElement);
+				driverFunc.get().findElement(locator));
 
 		Boolean loaded = false;
 		if (result instanceof Boolean) {
@@ -395,8 +420,8 @@ public abstract class BasePO<T> {
 	public double videoDuration() {
 		double duration = 0;
 		new WebDriverWait(driverFunc.get(), 10).until(webDriver -> ((JavascriptExecutor) webDriver)
-				.executeScript("return arguments[0].duration", webElement));
-		WebElement video = webElement;
+				.executeScript("return arguments[0].duration", driverFunc.get().findElement(locator)));
+		WebElement video = driverFunc.get().findElement(locator);
 		JavascriptExecutor js = (JavascriptExecutor) driverFunc.get();
 		duration = (double) js.executeScript("return arguments[0].duration", video);
 		return duration;
@@ -404,7 +429,7 @@ public abstract class BasePO<T> {
 
 	// it set the currentime in the video
 	public T videoCurrentTime(double currentTime) {
-		WebElement video = webElement;
+		WebElement video = driverFunc.get().findElement(locator);
 		JavascriptExecutor js = (JavascriptExecutor) driverFunc.get();
 		js.executeScript("return arguments[0].currentTime=" + currentTime, video);
 		return (T) this;

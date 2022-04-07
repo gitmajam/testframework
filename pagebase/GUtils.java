@@ -27,38 +27,54 @@ public class GUtils {
 			throw (e);
 		}
 	}
-	
-	public static void waitForClickableOf(WebElement webElement) {
-		new WebDriverWait(driverFunc.get(), 10).until(ExpectedConditions.elementToBeClickable(webElement));
+
+	public static void waitForClickableOf(By locator) {
+		try {
+			new WebDriverWait(driverFunc.get(), 10).until(ExpectedConditions.elementToBeClickable(locator));
+		} catch (Exception e) {
+			log.info("error waiting for to be cickable of locator : " + locator);
+		}
 	}
+
 	// Wait for given number of seconds for element with given locator to be visible
 	// on the page, Explicit wait.
-	public static void waitForVisibilityOf(WebElement webElement) {
-		new WebDriverWait(driverFunc.get(), 10).until(ExpectedConditions.visibilityOf(webElement));
+	public static void waitForVisibilityOf(By locator) {
+		try {
+			new WebDriverWait(driverFunc.get(), 10).until(ExpectedConditions.visibilityOfElementLocated(locator));
+		} catch (Exception e) {
+			log.info("error waiting for visibility of locator : " + locator);
+		}
 	}
-	
+
 	// Wait for given number of seconds for element with given locator to be visible
 	// on the page, Explicit wait.
-	public static void waitForPresenceOfminimunElements(By locator, Integer timeOutInSeconds, Integer minElements) {
-		timeOutInSeconds = timeOutInSeconds != null ? timeOutInSeconds : 30;
-		new WebDriverWait(driverFunc.get(), timeOutInSeconds).until(ExpectedConditions.numberOfElementsToBeMoreThan(locator, minElements-1));
+	public static void waitForPresenceOfminimunElements(By locator, Integer minElements) {
+		try {
+			new WebDriverWait(driverFunc.get(), 20)
+					.until(ExpectedConditions.numberOfElementsToBeMoreThan(locator, minElements - 1));
+		} catch (Exception e) {
+			log.info("error waiting for numberOfElementsToBeMoreThan of locator : " + locator);
+		}
 	}
 
 	// Wait for given number of seconds for element with given locator to be
 	// invisible
 	// on the page, Explicit wait.
-	public static void waitForNotVisibilityOf(WebElement webElement) {
-		new WebDriverWait(driverFunc.get(), 10).until(ExpectedConditions.invisibilityOf(webElement));
+	public static void waitForNotVisibilityOf(By locator) {
+		try {
+			Boolean a = new WebDriverWait(driverFunc.get(), 10)
+					.until(ExpectedConditions.invisibilityOfElementLocated(locator));
+		} catch (Exception e) {
+			log.info("error waiting for non visibility of locator : " + locator);
+		}
 	}
-	
-	public static void waitAttributes(WebElement webElement,String... attributes) {
+
+	public static void waitAttributes(WebElement webElement, String... attributes) {
 		String attribute = attributes.length > 0 ? attributes[0] : null;
 		String value = attributes.length > 0 ? attributes[1] : null;
 		if (attribute != null) {
 			new WebDriverWait(driverFunc.get(), 10)
 					.until(ExpectedConditions.attributeToBe(webElement, "aria-selected", "true"));
-			log.info("attribute : " + attribute);
-			log.info("value : " + value);
 		}
 	}
 
@@ -76,5 +92,5 @@ public class GUtils {
 			throw (e);
 		}
 	}
-	
+
 }
