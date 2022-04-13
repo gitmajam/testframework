@@ -1,28 +1,37 @@
 package com.tribu.qaselenium.testframework.pagebase;
 
+import static java.util.Objects.requireNonNull;
+
 import java.io.File;
-import java.lang.reflect.Field;
 import java.text.SimpleDateFormat;
+import java.time.Clock;
+import java.time.Duration;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.Logger;
 import org.openqa.selenium.Alert;
 import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.Keys;
+import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.SearchContext;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.Sleeper;
 import org.openqa.selenium.support.ui.WebDriverWait;
+import org.openqa.selenium.StaleElementReferenceException;
 
+import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.base.Supplier;
 import com.tribu.qaselenium.testframework.testbase.DriverFactory;
@@ -30,84 +39,150 @@ import com.tribu.qaselenium.testframework.testbase.TestLoggerFactory;
 
 public abstract class BasePO<T> {
 
-	// locator work variable
-	protected By locator;
-	// last selected element
-	protected WebElement webElement;
-
-	// Page title for switch to this page
+	protected By locator; // locator work variable
+	private WebElement webElement; // last selected element
+	private SearchContext searchContext; // Page title for switch to this page
 	protected String PTitle;
-	// this string variables are used in case you need to create a xpath reference
-	// in runtime, example: Hello Frontline
-	protected String xpathPart;
-	protected String xpathVariable1;
-	protected String xpathVariable2;
-	// variable to work with asserts
-	private Boolean status = null;
-	// variable to work with lastWebElement as base element
-	private Boolean baseElementStatus = false;
-	protected WebElement BaseElement;
-
+	protected WebElement baseElement;
+	protected List<Predicate<WebElement>> predicatesElementList = new ArrayList<Predicate<WebElement>>();
 	protected Logger log = TestLoggerFactory.getInstance().getLogger();
 	protected Supplier<WebDriver> driverFunc = () -> DriverFactory.getInstance().getDriver();
-
 	protected String resourcesPath = System.getProperty("user.dir") + File.separator + "src" + File.separator + "test"
 			+ File.separator + "resources" + File.separator;
 
 	/*
-	 * this method sets the work webElement variable in order to be use for all
-	 * methods of this class if receives a predicate as argument this one is put
-	 * into filter stream for search a specific webElement, else the method executes
-	 * normal findElement method.
+	 * this method sets the work webElemen, if receives a predicate as argument this
+	 * one is put into filter stream for search a specific webElement, else the
+	 * method executes find Elements without any filter , only verifies if the
+	 * element is in the DOM.
 	 */
-	@SuppressWarnings("unchecked")
-	protected T setWebElement(By by, Predicate<WebElement>... predicates) {
-		this.locator = by;
-		WebDriverWait waitPresence = new WebDriverWait(driverFunc.get(), 10);
-		SearchContext searchContext = baseElementStatus ? BaseElement : driverFunc.get();
-		List<WebElement> list = searchContext.findElements(locator);
-		if (list.size() > 0) {
-			if (predicates.length > 0) {
-				Predicate<WebElement> predicate = predicates[0];
-				waitPresence.until(ExpectedConditions.presenceOfAllElementsLocatedBy(locator));
-				list = list.stream().filter(predicate).collect(Collectors.toList());
-				if (list.size() > 0) {
-					status = true;
-					webElement = list.stream().filter(predicate).findFirst().get();
-				} else {
-					status = false;
-					webElement = null;
-				}
-			} else {
-				webElement = searchContext.findElement(locator);
-				status = true;
-			}
-		} else {
-			status = false;
-			webElement = null;
+	protected void setWebElement(By by, Predicate<WebElement>[] predicates) {
+		if (by.toString().contains(" .//") && (searchContext == driverFunc.get() || searchContext == null)) {
+			searchContext = webElement;
+		} else if (!(by.toString().contains(" .//")) && searchContext != driverFunc.get()) {
+			searchContext = driverFunc.get();
 		}
+		Collections.addAll(predicatesElementList, predicates);
+		List<Predicate<WebElement>> predicateList = new ArrayList<Predicate<WebElement>>();
+		predicateList.add(e -> e.isEnabled());
+		predicateList.add(e -> e.isDisplayed());
+		Collections.addAll(predicateList, predicates);
+		this.locator = by;
+		webElement = waitForElementSearch(predicateList);
+	}
+
+	public WebElement waitForElementSearch(List<Predicate<WebElement>> predicateList) {
+		Sleeper sleeper = requireNonNull(Sleeper.SYSTEM_SLEEPER);
+		Clock clock = requireNonNull(Clock.systemDefaultZone());
+		Duration timeout = Duration.ofMillis(3000);
+		Duration interval = Duration.ofMillis(500);
+		Instant end = clock.instant().plus(timeout);
+		WebElement element = null;
+		while (true) {
+			try {
+				element = visibilityOfElementWithFilter.apply(predicateList);
+				if (element != null) {
+					return element;
+				}
+			} catch (StaleElementReferenceException e) {
+				e.printStackTrace();
+			}
+			if (end.isBefore(clock.instant())) {
+				log.info("timeout, webElemnt not found : " + this.locator);
+				return element;
+			}
+			try {
+				sleeper.sleep(interval);
+			} catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
+				e.printStackTrace();
+			}
+		}
+	}
+
+	private Function<List<Predicate<WebElement>>, WebElement> visibilityOfElementWithFilter = (l) -> {
+		List<WebElement> elementList = this.searchContext.findElements(this.locator);
+		try {
+			l.forEach(predicate -> elementList.removeIf(predicate.negate()));
+		} catch (NoSuchElementException e) {
+			log.info("NoSuchElementException");
+			return null;
+		} catch (StaleElementReferenceException e) {
+			return null;
+		}
+		return elementList.stream().findFirst().orElse(null);
+	};
+
+	public T waitForNotVisibility() {
+		String message;
+		if (webElement != null) {
+			message = waitForAbsentElement(this.predicatesElementList) ? "webElement is absent"
+					: "webElement is not absent";
+		} else {
+			message = "webElement is absent";
+		}
+		log.info(message);
 		return (T) this;
 	}
+
+	public Boolean waitForAbsentElement(List<Predicate<WebElement>> predicateList) {
+		Sleeper sleeper = requireNonNull(Sleeper.SYSTEM_SLEEPER);
+		Clock clock = requireNonNull(Clock.systemDefaultZone());
+		Duration timeout = Duration.ofMillis(4000);
+		Duration interval = Duration.ofMillis(500);
+		Instant end = clock.instant().plus(timeout);
+		while (true) {
+			if (invisibilityOfElementWithFilter.apply(predicateList) == true) {
+				this.webElement = null;
+				return true;
+			}
+			if (end.isBefore(clock.instant())) {
+				log.info("timeout, webElement is still present : " + this.locator);
+				return false;
+			}
+			try {
+				sleeper.sleep(interval);
+			} catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
+				e.printStackTrace();
+			}
+		}
+	}
+
+	private Function<List<Predicate<WebElement>>, Boolean> invisibilityOfElementWithFilter = (l) -> {
+		List<WebElement> elementList = driverFunc.get().findElements(this.locator);
+		try {
+			l.forEach(predicate -> elementList.removeIf(predicate.negate()));
+			return elementList.size() == 0 ? true : false;
+		} catch (NoSuchElementException e) {
+			log.info("NoSuchElementException");
+			// Returns true because the element is not present in DOM. The
+			// try block checks if the element is present but is invisible.
+			return true;
+		} catch (StaleElementReferenceException err) {
+			// Returns true because stale element reference implies that element
+			// is no longer visible.
+			return true;
+		}
+	};
 
 	public By getLocator() {
 		return this.locator;
 	}
+
 	public WebElement getWebElement() {
 		return this.webElement;
 	}
 
 	// simple click method without return's supplier object
 	public T click() {
-		GUtils.waitForVisibilityOf(locator);
-		GUtils.waitForClickableOf(locator);
 		try {
 			webElement.click();
 		} catch (Exception e) {
 			JavascriptExecutor executor = (JavascriptExecutor) driverFunc.get();
-			executor.executeScript("arguments[0].click();", driverFunc.get().findElement(locator));
-			log.info("click por javascript : " + locator);
+			executor.executeScript("arguments[0].click();", webElement);
+			log.info("click por javascript : " + this.locator);
 		}
-
 		GUtils.waitForPageToLoad();
 		return (T) this;
 	}
@@ -139,32 +214,30 @@ public abstract class BasePO<T> {
 		String centerElement = "var viewPortHeight = Math.max(document.documentElement.clientHeight, window.innerHeight || 0);"
 				+ "var elementTop = arguments[0].getBoundingClientRect().top;"
 				+ "window.scrollBy(0, elementTop-(viewPortHeight/2));";
-		((JavascriptExecutor) driverFunc.get()).executeScript(centerElement, driverFunc.get().findElement(locator));
+		((JavascriptExecutor) driverFunc.get()).executeScript(centerElement, webElement);
 		return (T) this;
 	}
 
-	public T stayBaseElement() {
-		BaseElement = webElement;
-		this.baseElementStatus = true;
-		return (T) this;
-	}
-
-	public T quitBaseElement() {
-		BaseElement = null;
-		this.baseElementStatus = false;
-		return (T) this;
-	}
-
-	public T selectElement(Predicate<WebElement> predicateBase, Predicate<WebElement> predicateChild) {
-		List<WebElement> list = driverFunc.get().findElements(locator);
-		webElement = list.stream().filter(predicateBase).findFirst().get();
+	// Clear given text into element with given locator
+	public T clear() {
+		webElement.clear();
 		return (T) this;
 	}
 
 	// Type given text into element with given locator
 	public T type(String text) {
-		GUtils.waitForVisibilityOf(locator);
-		webElement.sendKeys(text);
+		try {
+			this.webElement.sendKeys(text);
+		} catch (Exception e) {
+			List<Predicate<WebElement>> predicateList = new ArrayList<Predicate<WebElement>>();
+			this.webElement = waitForElementSearch(predicateList);
+			try {
+				this.webElement.sendKeys(text);
+				log.info("Element found without isDisplayed filter");
+			} catch (Exception error) {
+				e.printStackTrace();
+			}
+		}
 		return (T) this;
 	}
 
@@ -175,13 +248,12 @@ public abstract class BasePO<T> {
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
-		webElement.sendKeys(text);
+		type(text);
 		return (T) this;
 	}
 
 	public T hoverElement() {
 		Actions actions = new Actions(driverFunc.get());
-		GUtils.waitForVisibilityOf(locator);
 		actions.moveToElement(webElement).perform();
 		return (T) this;
 	}
@@ -191,18 +263,15 @@ public abstract class BasePO<T> {
 		switch (key) {
 		case "LEFT":
 			for (int i = 0; i < times; i++) {
-				GUtils.waitForVisibilityOf(locator);
 				webElement.sendKeys(Keys.ARROW_LEFT);
 			}
 			break;
 		case "RIGHT":
 			for (int i = 0; i < times; i++) {
-				GUtils.waitForVisibilityOf(locator);
 				webElement.sendKeys(Keys.ARROW_RIGHT);
 			}
 			break;
 		case "STAY":
-			GUtils.waitForVisibilityOf(locator);
 			webElement.sendKeys(Keys.ARROW_RIGHT);
 			webElement.sendKeys(Keys.ARROW_LEFT);
 			break;
@@ -217,22 +286,14 @@ public abstract class BasePO<T> {
 	public T waitForTextChange() {
 		String currentText = webElement.getText().trim();
 		new WebDriverWait(driverFunc.get(), 20).until(
-				ExpectedConditions.not(ExpectedConditions.textToBePresentInElementLocated(locator, currentText)));
+				ExpectedConditions.not(ExpectedConditions.textToBePresentInElementLocated(this.locator, currentText)));
 		return (T) this;
-	}
-
-	// Clear given text into element with given locator
-	public T clear() {
-		GUtils.waitForVisibilityOf(locator);
-		webElement.clear();
-		return (T) this;
-	}
-
-	public String getText() {
-		return webElement.getText().trim();
 	}
 
 	public T swichToFrame() {
+		if (webElement == null) {
+			log.info("frame webelement not found :" + this.locator);
+		}
 		driverFunc.get().switchTo().frame(webElement);
 		try {
 			Thread.sleep(500);
@@ -268,7 +329,7 @@ public abstract class BasePO<T> {
 			new WebDriverWait(driverFunc.get(), 15).until(
 					webDriver -> ((JavascriptExecutor) webDriver).executeScript("return arguments[0].complete && "
 							+ "typeof arguments[0].naturalWidth != \"undefined\" && " + "arguments[0].naturalWidth > 0",
-							driverFunc.get().findElement(locator)));
+							webElement));
 		} catch (Exception e) {
 			log.info("WaitForImage timeout");
 			throw (e);
@@ -279,26 +340,15 @@ public abstract class BasePO<T> {
 	// to use with external locator (locator builded) by the tests suits, used in
 	// asserts of images.
 	public T waitForImage(String imgName) {
-		this.locator = By.xpath(this.xpathPart + imgName + this.getTodaysDate() + "')]");
 		try {
 			new WebDriverWait(driverFunc.get(), 15).until(
 					webDriver -> ((JavascriptExecutor) webDriver).executeScript("return arguments[0].complete && "
 							+ "typeof arguments[0].naturalWidth != \"undefined\" && " + "arguments[0].naturalWidth > 0",
-							driverFunc.get().findElement(locator)));
+							webElement));
 		} catch (Exception e) {
 			log.info("WaitForImage timeout");
 			throw (e);
 		}
-		return (T) this;
-	}
-
-	public T waitForVisibility() {
-		GUtils.waitForVisibilityOf(locator);
-		return (T) this;
-	}
-
-	public T waitForNotVisibility() {
-		GUtils.waitForNotVisibilityOf(locator);
 		return (T) this;
 	}
 
@@ -310,30 +360,11 @@ public abstract class BasePO<T> {
 
 	/* asserts */
 
-	// looking for text inside other text using in asserts
-	public Boolean contains(String text) {
-		GUtils.waitForVisibilityOf(locator);
-		return webElement.getText().contains(text);
-	}
-
-	public Boolean isDisplayed() {
-		return webElement.isDisplayed();
-	}
-
-	public Boolean existElement() {
-		return this.status;
-	}
-
-	public T ifExist(Runnable runnable) {
-		if (status == true) {
-			runnable.run();
-		}
-		return (T) this;
-	}
-	
-	public T ifNotExist(Runnable runnable) {
-		if (status == false) {
-			runnable.run();
+	public T ifFoundOrElse(Runnable runFound, Runnable runElse) {
+		if (webElement != null && runFound != null) {
+			runFound.run();
+		} else if (webElement == null && runElse != null) {
+			runElse.run();
 		}
 		return (T) this;
 	}
@@ -343,51 +374,35 @@ public abstract class BasePO<T> {
 		return (T) this;
 	}
 
-	public T assertExist(BiConsumer<Boolean, String> consumer) {
-		String message = existElement() ? "Element exist" : "Element doesn't exist";
-		consumer.accept(existElement(), message + " " + locator.toString());
+	public T assess(BiConsumer<Boolean, String> consumer, String... resultText) {
+		String text = resultText.length > 0 ? resultText[0] : null;
+		String message = webElement != null ? "Element found " + text : "Element was not found " + text;
+		consumer.accept(webElement != null, message + ", " + this.locator.toString());
 		return (T) this;
 	}
 
 	public Boolean verifyImage() {
 		Object result = ((JavascriptExecutor) driverFunc.get()).executeScript("return arguments[0].complete && "
 				+ "typeof arguments[0].naturalWidth != \"undefined\" && " + "arguments[0].naturalWidth > 0",
-				driverFunc.get().findElement(locator));
-
-		Boolean loaded = false;
-		if (result instanceof Boolean) {
-			loaded = (Boolean) result;
-		}
-		return loaded;
+				webElement);
+		return result instanceof Boolean ? (Boolean) result : false;
 	}
-
-	// method to retrieve a field from this (T) object using it's name trough a
-	// string
-	public T selectField(String s) {
-		Field field = null;
-		By campo = null;
+	
+	public boolean isFileDownloaded(String downloadPath, String fileName) {
+		boolean flag = false;
 		try {
-			field = this.getClass().getDeclaredField(s);
-			field.setAccessible(true);
-		} catch (NoSuchFieldException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (SecurityException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} // or StudentRecord.class.getField()
-		try {
-			campo = (By) field.get(this);
-		} catch (IllegalArgumentException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IllegalAccessException e) {
-			// TODO Auto-generated catch block
+			Thread.sleep(3000);
+		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
-		this.locator = campo;
-		return (T) this;
-	};
+	    File dir = new File(downloadPath);
+	    File[] dir_contents = dir.listFiles();
+	    for (int i = 0; i < dir_contents.length; i++) {
+	        if (dir_contents[i].getName().contains(fileName))
+	            return flag=true;
+	            }
+	    return flag;
+	}
 
 	/* switch to new window page, ex: opening hello-beer in simplifica hub */
 
@@ -420,8 +435,8 @@ public abstract class BasePO<T> {
 	public double videoDuration() {
 		double duration = 0;
 		new WebDriverWait(driverFunc.get(), 10).until(webDriver -> ((JavascriptExecutor) webDriver)
-				.executeScript("return arguments[0].duration", driverFunc.get().findElement(locator)));
-		WebElement video = driverFunc.get().findElement(locator);
+				.executeScript("return arguments[0].duration", webElement));
+		WebElement video = webElement;
 		JavascriptExecutor js = (JavascriptExecutor) driverFunc.get();
 		duration = (double) js.executeScript("return arguments[0].duration", video);
 		return duration;
@@ -429,7 +444,7 @@ public abstract class BasePO<T> {
 
 	// it set the currentime in the video
 	public T videoCurrentTime(double currentTime) {
-		WebElement video = driverFunc.get().findElement(locator);
+		WebElement video = webElement;
 		JavascriptExecutor js = (JavascriptExecutor) driverFunc.get();
 		js.executeScript("return arguments[0].currentTime=" + currentTime, video);
 		return (T) this;

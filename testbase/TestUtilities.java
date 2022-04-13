@@ -72,7 +72,7 @@ public class TestUtilities {
 		log.info("opening url : " + pageSupplier.get().getPageUrl());
 		driverFunc.get().get(pageSupplier.get().getPageUrl());
 		GUtils.waitForPageToLoad();
-		sleep(delay);
+		//sleep(delay);
 		return pageSupplier;
 	}
 
