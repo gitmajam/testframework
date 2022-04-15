@@ -1,15 +1,13 @@
 package com.tribu.qaselenium.testframework.testbase;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import org.openqa.selenium.By;
+import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.SearchContext;
 import org.openqa.selenium.StaleElementReferenceException;
-import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedCondition;
 
@@ -53,7 +51,7 @@ public class CheckedConditions {
 	 * @param locator used to find the element
 	 * @return the list of WebElements once they are located
 	 */
-	public static CheckedCondition<List<WebElement>> visibilityOfAllElementLocatedBy(final By locator) {
+	public static CheckedCondition<List<WebElement>> visibilityOfAllElementLocatedBy(final By locator, final List<Predicate<WebElement>> predicateList) {
 		return new CheckedCondition<List<WebElement>>() {
 			@Override
 			public List<WebElement> apply(SearchContext context) {
@@ -79,6 +77,35 @@ public class CheckedConditions {
 			public WebElement apply(SearchContext context) {
 				try {
 					return elementIfVisible(context.findElement(locator));
+				} catch (StaleElementReferenceException e) {
+					return null;
+				}
+			}
+
+			@Override
+			public String toString() {
+				return "visibility of element located by " + locator;
+			}
+		};
+	}
+
+	/**
+	 * @param locator   used to find the element
+	 * @param predicate used to filter the search
+	 * @return the WebElement once it is located and visible
+	 */
+	public static CheckedCondition<WebElement> visibilityOfElementLocatedByFilter(final By locator,
+			final List<Predicate<WebElement>> predicateList) {
+		return new CheckedCondition<WebElement>() {
+			@Override
+			public WebElement apply(SearchContext context) {
+				try {
+					List<WebElement> elementList = context.findElements(locator);
+					predicateList.forEach(predicate -> elementList.removeIf(predicate.negate()));
+					return elementList.stream().findFirst().orElse(null);
+				} catch (NoSuchElementException e) {
+					log.info("NoSuchElementException");
+					return null;
 				} catch (StaleElementReferenceException e) {
 					return null;
 				}
