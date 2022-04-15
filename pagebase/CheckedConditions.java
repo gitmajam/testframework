@@ -1,4 +1,4 @@
-package com.tribu.qaselenium.testframework.testbase;
+package com.tribu.qaselenium.testframework.pagebase;
 
 import java.util.List;
 import java.util.logging.Logger;
@@ -25,33 +25,8 @@ public class CheckedConditions {
 		// Utility class
 	}
 
-	/**
-	 * this Class let us to find a webelement from a WebDriver or a WebElement
-	 * context
-	 * 
-	 * @param locator used to find the element
-	 * @return the list of WebElements once they are located
-	 */
-	public static CheckedCondition<List<WebElement>> presenceOfAllElementsLocatedBy(final By locator) {
-		return new CheckedCondition<List<WebElement>>() {
-			@Override
-			public List<WebElement> apply(SearchContext context) {
-				List<WebElement> elements = context.findElements(locator);
-				return elements.size() > 0 ? elements : null;
-			}
-
-			@Override
-			public String toString() {
-				return "presence of any elements located by " + locator;
-			}
-		};
-	}
-
-	/**
-	 * @param locator used to find the element
-	 * @return the list of WebElements once they are located
-	 */
-	public static CheckedCondition<List<WebElement>> visibilityOfAllElementLocatedBy(final By locator, final List<Predicate<WebElement>> predicateList) {
+	public static CheckedCondition<List<WebElement>> visibilityOfAllElementLocatedByFilter(final By locator,
+			List<Predicate<WebElement>> predicateList) {
 		return new CheckedCondition<List<WebElement>>() {
 			@Override
 			public List<WebElement> apply(SearchContext context) {
@@ -117,6 +92,40 @@ public class CheckedConditions {
 			}
 		};
 	}
+	
+	/**
+	 * @param locator   used to find the element
+	 * @param predicate used to filter the search
+	 * @return the WebElement once it is located and visible
+	 */
+	
+	public static CheckedCondition<Boolean> invisibilityOfElementLocatedByFilter(final By locator,
+			final List<Predicate<WebElement>> predicateList) {
+		return new CheckedCondition<Boolean>() {
+			@Override
+			public Boolean apply(SearchContext context) {
+				List<WebElement> elementList = context.findElements(locator);
+				try {
+					predicateList.forEach(predicate -> elementList.removeIf(predicate.negate()));
+					return elementList.size() == 0 ? true : false;
+				} catch (NoSuchElementException e) {
+					log.info("NoSuchElementException");
+					// Returns true because the element is not present in DOM. The
+					// try block checks if the element is present but is invisible.
+					return true;
+				} catch (StaleElementReferenceException err) {
+					// Returns true because stale element reference implies that element
+					// is no longer visible.
+					return true;
+				}
+			}
+
+			@Override
+			public String toString() {
+				return "visibility of element located by " + locator;
+			}
+		};
+	}
 
 	/**
 	 * @return the given element if it is visible and has non-zero size, otherwise
@@ -125,4 +134,5 @@ public class CheckedConditions {
 	private static WebElement elementIfVisible(WebElement element) {
 		return element.isDisplayed() ? element : null;
 	}
+
 }
