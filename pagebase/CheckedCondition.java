@@ -1,4 +1,4 @@
-package com.tribu.qaselenium.testframework.testbase;
+package com.tribu.qaselenium.testframework.pagebase;
 
 import org.openqa.selenium.SearchContext;
 

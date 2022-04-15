@@ -1,15 +1,18 @@
 package com.tribu.qaselenium.testframework.pagebase;
 
 import java.util.List;
-
+import java.time.Duration;
 import org.apache.logging.log4j.Logger;
 import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.NoSuchElementException;
+import org.openqa.selenium.SearchContext;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebDriverException;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.FluentWait;
+import org.openqa.selenium.support.ui.Wait;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.openqa.selenium.StaleElementReferenceException;
 
@@ -24,52 +27,35 @@ public class GUtils {
 	protected static Logger log = TestLoggerFactory.getInstance().getLogger();
 	protected static Supplier<WebDriver> driverFunc = () -> DriverFactory.getInstance().getDriver();
 
-	// Find element using given locator
-	protected static WebElement find(By locator, WebDriver driver) {
+	public static WebElement waitForVisibilityByfilter(By locator, SearchContext searchContext,List<Predicate<WebElement>> predicateList ) {
+		WebElement element = null;
 		try {
-			return driver.findElement(locator);
-		} catch (WebDriverException e) {
-			log.info("Fail: WebDriver couldn’t locate the element: " + locator);
-			throw (e);
-		}
-	}
-
-	public static void waitForClickableOf(By locator) {
-		try {
-			new WebDriverWait(driverFunc.get(), 10).until(ExpectedConditions.elementToBeClickable(locator));
+			Wait<SearchContext> wait = new FluentWait<SearchContext>(searchContext)
+				      .withTimeout(Duration.ofMillis(1500L))
+				       .pollingEvery(Duration.ofMillis(500L))
+				       .ignoring(NoSuchElementException.class,StaleElementReferenceException.class);
+			
+			element = 	wait.until(CheckedConditions.visibilityOfElementLocatedByFilter(locator,predicateList));
 		} catch (Exception e) {
-			log.info("error waiting for to be cickable of locator : " + locator);
+			log.info("timeout waiting for visibility of locator : " + locator);
 		}
+		return element;
 	}
-
-	// Wait for given number of seconds for element with given locator to be visible
-	// on the page, Explicit wait.
-	public static void waitForVisibilityOf(By locator) {
+	
+	public static Boolean waitForInvisibilityByfilter(By locator, SearchContext searchContext,List<Predicate<WebElement>> predicateList ) {
+		Boolean isInvisible = false;
 		try {
-			new WebDriverWait(driverFunc.get(), 10).until(ExpectedConditions.visibilityOfElementLocated(locator));
+			Wait<SearchContext> wait = new FluentWait<SearchContext>(searchContext)
+				      .withTimeout(Duration.ofMillis(1500L))
+				       .pollingEvery(Duration.ofMillis(500L))
+				       .ignoring(NoSuchElementException.class,StaleElementReferenceException.class);
+			
+			isInvisible = 	wait.until(CheckedConditions.invisibilityOfElementLocatedByFilter(locator,predicateList));
 		} catch (Exception e) {
-			log.info("error waiting for visibility of locator : " + locator);
+			log.info("timeout waiting for visibility of locator : " + locator);
+			isInvisible = true;
 		}
-	}
-
-	public static void waitForPresenceOf(By locator) {
-		try {
-			new WebDriverWait(driverFunc.get(), 10).until(ExpectedConditions.presenceOfElementLocated(locator));
-		} catch (Exception e) {
-			log.info("error waiting for non presence of locator : " + locator);
-		}
-	}
-
-	// Wait for given number of seconds for element with given locator to be
-	// invisible
-	// on the page, Explicit wait.
-	public static void waitForNotVisibilityOf(By locator) {
-		try {
-			Boolean a = new WebDriverWait(driverFunc.get(), 20)
-					.until(ExpectedConditions.invisibilityOfElementLocated(locator));
-		} catch (Exception e) {
-			log.info("timeout, wait non visibility of locator : " + locator);
-		}
+		return isInvisible;
 	}
 
 	// Waiting for page is whole loaded
@@ -86,6 +72,5 @@ public class GUtils {
 			throw (e);
 		}
 	}
-
 
 }

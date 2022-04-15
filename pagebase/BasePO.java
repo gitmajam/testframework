@@ -1,12 +1,7 @@
 package com.tribu.qaselenium.testframework.pagebase;
 
-import static java.util.Objects.requireNonNull;
-
 import java.io.File;
 import java.text.SimpleDateFormat;
-import java.time.Clock;
-import java.time.Duration;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -14,24 +9,19 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.function.BiConsumer;
-import java.util.function.Consumer;
 
 import org.apache.logging.log4j.Logger;
 import org.openqa.selenium.Alert;
 import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.Keys;
-import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.SearchContext;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
-import org.openqa.selenium.support.ui.Sleeper;
 import org.openqa.selenium.support.ui.WebDriverWait;
-import org.openqa.selenium.StaleElementReferenceException;
 
-import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.base.Supplier;
 import com.tribu.qaselenium.testframework.testbase.DriverFactory;
@@ -53,118 +43,40 @@ public abstract class BasePO<T> {
 	/*
 	 * this method sets the work webElemen, if receives a predicate as argument this
 	 * one is put into filter stream for search a specific webElement, else the
-	 * method executes find Elements without any filter , only verifies if the
+	 * method executes findElements without any filter , only verifies if the
 	 * element is in the DOM.
 	 */
 	protected void setWebElement(By by, Predicate<WebElement>[] predicates) {
-		if (by.toString().contains(" .//") && (searchContext == driverFunc.get() || searchContext == null)) {
-			searchContext = webElement;
-		} else if (!(by.toString().contains(" .//")) && searchContext != driverFunc.get()) {
-			searchContext = driverFunc.get();
-		}
-		Collections.addAll(predicatesElementList, predicates);
 		List<Predicate<WebElement>> predicateList = new ArrayList<Predicate<WebElement>>();
-		predicateList.add(e -> e.isEnabled());
-		predicateList.add(e -> e.isDisplayed());
-		Collections.addAll(predicateList, predicates);
-		this.locator = by;
-		webElement = waitForElementSearch(predicateList);
-	}
+		Collections.addAll(predicatesElementList, predicates);
 
-	public WebElement waitForElementSearch(List<Predicate<WebElement>> predicateList) {
-		Sleeper sleeper = requireNonNull(Sleeper.SYSTEM_SLEEPER);
-		Clock clock = requireNonNull(Clock.systemDefaultZone());
-		Duration timeout = Duration.ofMillis(3000);
-		Duration interval = Duration.ofMillis(500);
-		Instant end = clock.instant().plus(timeout);
-		WebElement element = null;
-		while (true) {
-			try {
-				element = visibilityOfElementWithFilter.apply(predicateList);
-				if (element != null) {
-					return element;
-				}
-			} catch (StaleElementReferenceException e) {
-				e.printStackTrace();
+		if (!(webElement == null && by.toString().contains(" .//"))) {
+			if (by.toString().contains(" .//")) {
+				searchContext = webElement;
+			} else {
+				searchContext = driverFunc.get();
 			}
-			if (end.isBefore(clock.instant())) {
-				log.info("timeout, webElemnt not found : " + this.locator);
-				return element;
-			}
-			try {
-				sleeper.sleep(interval);
-			} catch (InterruptedException e) {
-				Thread.currentThread().interrupt();
-				e.printStackTrace();
-			}
+			predicateList.add(e -> e.isEnabled());
+			predicateList.add(e -> e.isDisplayed());
+			Collections.addAll(predicateList, predicates);
+			this.locator = by;
+			webElement = GUtils.waitForVisibilityByfilter(locator, searchContext, predicateList);
 		}
 	}
-
-	private Function<List<Predicate<WebElement>>, WebElement> visibilityOfElementWithFilter = (l) -> {
-		List<WebElement> elementList = this.searchContext.findElements(this.locator);
-		try {
-			l.forEach(predicate -> elementList.removeIf(predicate.negate()));
-		} catch (NoSuchElementException e) {
-			log.info("NoSuchElementException");
-			return null;
-		} catch (StaleElementReferenceException e) {
-			return null;
-		}
-		return elementList.stream().findFirst().orElse(null);
-	};
 
 	public T waitForNotVisibility() {
-		String message;
-		if (webElement != null) {
-			message = waitForAbsentElement(this.predicatesElementList) ? "webElement is absent"
-					: "webElement is not absent";
-		} else {
+		Boolean isInvisible = GUtils.waitForInvisibilityByfilter(locator, searchContext, predicatesElementList);
+		String message = null;
+		if (isInvisible == true) {
+			webElement = null;
 			message = "webElement is absent";
+			this.webElement = null;
+		} else if (isInvisible == false) {
+			message = "webElement is not absent";
 		}
 		log.info(message);
 		return (T) this;
 	}
-
-	public Boolean waitForAbsentElement(List<Predicate<WebElement>> predicateList) {
-		Sleeper sleeper = requireNonNull(Sleeper.SYSTEM_SLEEPER);
-		Clock clock = requireNonNull(Clock.systemDefaultZone());
-		Duration timeout = Duration.ofMillis(4000);
-		Duration interval = Duration.ofMillis(500);
-		Instant end = clock.instant().plus(timeout);
-		while (true) {
-			if (invisibilityOfElementWithFilter.apply(predicateList) == true) {
-				this.webElement = null;
-				return true;
-			}
-			if (end.isBefore(clock.instant())) {
-				log.info("timeout, webElement is still present : " + this.locator);
-				return false;
-			}
-			try {
-				sleeper.sleep(interval);
-			} catch (InterruptedException e) {
-				Thread.currentThread().interrupt();
-				e.printStackTrace();
-			}
-		}
-	}
-
-	private Function<List<Predicate<WebElement>>, Boolean> invisibilityOfElementWithFilter = (l) -> {
-		List<WebElement> elementList = driverFunc.get().findElements(this.locator);
-		try {
-			l.forEach(predicate -> elementList.removeIf(predicate.negate()));
-			return elementList.size() == 0 ? true : false;
-		} catch (NoSuchElementException e) {
-			log.info("NoSuchElementException");
-			// Returns true because the element is not present in DOM. The
-			// try block checks if the element is present but is invisible.
-			return true;
-		} catch (StaleElementReferenceException err) {
-			// Returns true because stale element reference implies that element
-			// is no longer visible.
-			return true;
-		}
-	};
 
 	public By getLocator() {
 		return this.locator;
@@ -187,7 +99,7 @@ public abstract class BasePO<T> {
 		return (T) this;
 	}
 
-	// click with delay before
+	// click with delay after
 	public T click(Integer miliSeconds) {
 		click();
 		try {
@@ -198,7 +110,7 @@ public abstract class BasePO<T> {
 		return (T) this;
 	}
 
-	// ths click method returns a supplier
+	// this click method returns a supplier
 	public <R> Supplier<R> click(Supplier<R> pageSupplier, Integer... delays) {
 		Integer delay = delays.length > 0 ? delays[0] : null;
 		if (delay != null) {
@@ -230,7 +142,7 @@ public abstract class BasePO<T> {
 			this.webElement.sendKeys(text);
 		} catch (Exception e) {
 			List<Predicate<WebElement>> predicateList = new ArrayList<Predicate<WebElement>>();
-			this.webElement = waitForElementSearch(predicateList);
+			this.webElement = GUtils.waitForVisibilityByfilter(locator, searchContext, predicateList);
 			try {
 				this.webElement.sendKeys(text);
 				log.info("Element found without isDisplayed filter");
@@ -387,7 +299,7 @@ public abstract class BasePO<T> {
 				webElement);
 		return result instanceof Boolean ? (Boolean) result : false;
 	}
-	
+
 	public boolean isFileDownloaded(String downloadPath, String fileName) {
 		boolean flag = false;
 		try {
@@ -395,13 +307,13 @@ public abstract class BasePO<T> {
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
-	    File dir = new File(downloadPath);
-	    File[] dir_contents = dir.listFiles();
-	    for (int i = 0; i < dir_contents.length; i++) {
-	        if (dir_contents[i].getName().contains(fileName))
-	            return flag=true;
-	            }
-	    return flag;
+		File dir = new File(downloadPath);
+		File[] dir_contents = dir.listFiles();
+		for (int i = 0; i < dir_contents.length; i++) {
+			if (dir_contents[i].getName().contains(fileName))
+				return flag = true;
+		}
+		return flag;
 	}
 
 	/* switch to new window page, ex: opening hello-beer in simplifica hub */

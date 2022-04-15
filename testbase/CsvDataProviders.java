@@ -208,10 +208,6 @@ public class CsvDataProviders {
 		
 		//provider
 		List<Object[]> list = new ArrayList<Object[]>();
-		String pathname = "src" + File.separator + "test" + File.separator + "resources" + File.separator
-				+ method.getDeclaringClass().getSimpleName() + File.separator + "dataproviders" + File.separator
-				+ method.getDeclaringClass().getSimpleName() + ".csv";
-
 		File file = new File(path);
 		try {
 			CSVReader reader = new CSVReader(new FileReader(file));
@@ -247,13 +243,20 @@ public class CsvDataProviders {
 	// this dataprovider delivers a list (list of Maps) of lists
 	@DataProvider(name = "csvReaderMatrix", parallel = false)
 	public static Iterator<Object[]> csvReaderMatrix(Method method, ITestContext testContext) {
+		String path = null;
+		
+		//accesing to classfield from caller class by reflection
+		try {
+			Field field = method.getDeclaringClass().getDeclaredField("dataProviderFilePath");
+			Object  testObj = method.getDeclaringClass().getDeclaredConstructor().newInstance();
+			path =  (String) field.get(testObj);	
+		} catch (Exception e1) {
+			e1.printStackTrace();
+		} 
+		
 		List<Object[]> list = new ArrayList<Object[]>();
 		List<Map<String, String>> dataList = new ArrayList<Map<String, String>>();
-		String pathname = "src" + File.separator + "test" + File.separator + "resources" + File.separator
-				+ method.getDeclaringClass().getSimpleName() + File.separator + "dataproviders" + File.separator
-				+ method.getName() + ".csv";
-
-		File file = new File(pathname);
+		File file = new File(path);
 		try {
 			CSVReader reader = new CSVReader(new FileReader(file));
 			String[] keys = reader.readNext();
@@ -273,12 +276,12 @@ public class CsvDataProviders {
 			}
 			reader.close();
 		} catch (FileNotFoundException e) {
-			throw new RuntimeException("File " + pathname + " was not found.\n" + e.getStackTrace().toString());
+			throw new RuntimeException("File " + path + " was not found.\n" + e.getStackTrace().toString());
 		} catch (IOException e) {
-			throw new RuntimeException("Could not read " + pathname + " file.\n" + e.getStackTrace().toString());
+			throw new RuntimeException("Could not read " + path + " file.\n" + e.getStackTrace().toString());
 		} catch (CsvValidationException e) {
 			throw new RuntimeException(
-					"Could not read next line in csv file" + pathname + "\n" + e.getStackTrace().toString());
+					"Could not read next line in csv file" + path + "\n" + e.getStackTrace().toString());
 		}
 
 		return list.iterator();
