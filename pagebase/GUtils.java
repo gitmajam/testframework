@@ -27,30 +27,32 @@ public class GUtils {
 	protected static Logger log = TestLoggerFactory.getInstance().getLogger();
 	protected static Supplier<WebDriver> driverFunc = () -> DriverFactory.getInstance().getDriver();
 
-	public static WebElement waitForVisibilityByfilter(By locator, SearchContext searchContext,List<Predicate<WebElement>> predicateList ) {
+	public static WebElement waitForVisibilityByfilter(By locator, SearchContext searchContext,
+			List<Predicate<WebElement>> predicateList, Long... delays) {
+		Long timeOut = delays.length > 0 ? delays[0] : 4000;
 		WebElement element = null;
 		try {
 			Wait<SearchContext> wait = new FluentWait<SearchContext>(searchContext)
-				      .withTimeout(Duration.ofMillis(1500L))
-				       .pollingEvery(Duration.ofMillis(500L))
-				       .ignoring(NoSuchElementException.class,StaleElementReferenceException.class);
-			
-			element = 	wait.until(CheckedConditions.visibilityOfElementLocatedByFilter(locator,predicateList));
+					.withTimeout(Duration.ofMillis(timeOut))
+					.pollingEvery(Duration.ofMillis(500L))
+					.ignoring(NoSuchElementException.class, StaleElementReferenceException.class);
+
+			element = wait.until(CheckedConditions.visibilityOfElementLocatedByFilter(locator, predicateList));
 		} catch (Exception e) {
-			log.info("timeout waiting for visibility of locator : " + locator);
+			log.info("timeout waiting for visibility of searchContext : " + searchContext + " locator : " + locator);
 		}
 		return element;
 	}
-	
-	public static Boolean waitForInvisibilityByfilter(By locator, SearchContext searchContext,List<Predicate<WebElement>> predicateList ) {
+
+	public static Boolean waitForInvisibilityByfilter(By locator, SearchContext searchContext,
+			List<Predicate<WebElement>> predicateList) {
 		Boolean isInvisible = false;
 		try {
 			Wait<SearchContext> wait = new FluentWait<SearchContext>(searchContext)
-				      .withTimeout(Duration.ofMillis(1500L))
-				       .pollingEvery(Duration.ofMillis(500L))
-				       .ignoring(NoSuchElementException.class,StaleElementReferenceException.class);
-			
-			isInvisible = 	wait.until(CheckedConditions.invisibilityOfElementLocatedByFilter(locator,predicateList));
+					.withTimeout(Duration.ofMillis(1500L)).pollingEvery(Duration.ofMillis(500L))
+					.ignoring(NoSuchElementException.class, StaleElementReferenceException.class);
+
+			isInvisible = wait.until(CheckedConditions.invisibilityOfElementLocatedByFilter(locator, predicateList));
 		} catch (Exception e) {
 			log.info("timeout waiting for visibility of locator : " + locator);
 			isInvisible = true;
@@ -70,6 +72,23 @@ public class GUtils {
 		} catch (Exception e) {
 			log.info("WaitForPageLoad timeout");
 			throw (e);
+		}
+	}
+
+	public static void waitImageVisivility(By locator, SearchContext searchContext,
+			List<Predicate<WebElement>> predicateList, Long... delays) {
+		Long timeOut = delays.length > 0 ? delays[0] : 10000;
+		try {
+			Wait<SearchContext> wait = new FluentWait<SearchContext>(searchContext)
+					.withTimeout(Duration.ofMillis(timeOut))
+					.pollingEvery(Duration.ofMillis(500L))
+					.ignoring(NoSuchElementException.class, StaleElementReferenceException.class);
+
+			wait.until(context->((JavascriptExecutor) context).executeScript("return arguments[0].complete && "
+					+ "typeof arguments[0].naturalWidth != 'undefined' && " + "arguments[0].naturalWidth > 0",
+					searchContext.findElement(locator)));
+		} catch (Exception e) {
+			log.info("WaitForImage timeout");
 		}
 	}
 

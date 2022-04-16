@@ -51,9 +51,11 @@ public abstract class BasePO<T> {
 		Collections.addAll(predicatesElementList, predicates);
 
 		if (!(webElement == null && by.toString().contains(" .//"))) {
-			if (by.toString().contains(" .//")) {
+			if (by.toString().contains(" .//") && baseElement == null) {
+				baseElement = webElement;
 				searchContext = webElement;
 			} else {
+				baseElement = null;
 				searchContext = driverFunc.get();
 			}
 			predicateList.add(e -> e.isEnabled());
@@ -233,34 +235,6 @@ public abstract class BasePO<T> {
 
 	public T swichToMain() {
 		driverFunc.get().switchTo().defaultContent();
-		return (T) this;
-	}
-
-	public T waitForImage() {
-		try {
-			new WebDriverWait(driverFunc.get(), 15).until(
-					webDriver -> ((JavascriptExecutor) webDriver).executeScript("return arguments[0].complete && "
-							+ "typeof arguments[0].naturalWidth != \"undefined\" && " + "arguments[0].naturalWidth > 0",
-							webElement));
-		} catch (Exception e) {
-			log.info("WaitForImage timeout");
-			throw (e);
-		}
-		return (T) this;
-	}
-
-	// to use with external locator (locator builded) by the tests suits, used in
-	// asserts of images.
-	public T waitForImage(String imgName) {
-		try {
-			new WebDriverWait(driverFunc.get(), 15).until(
-					webDriver -> ((JavascriptExecutor) webDriver).executeScript("return arguments[0].complete && "
-							+ "typeof arguments[0].naturalWidth != \"undefined\" && " + "arguments[0].naturalWidth > 0",
-							webElement));
-		} catch (Exception e) {
-			log.info("WaitForImage timeout");
-			throw (e);
-		}
 		return (T) this;
 	}
 
