@@ -54,6 +54,8 @@ public abstract class BasePO<T> {
 			if (by.toString().contains(" .//") && baseElement == null) {
 				baseElement = webElement;
 				searchContext = webElement;
+			} else if (by.toString().contains(" .//") && baseElement != null) {
+				searchContext = baseElement;
 			} else {
 				baseElement = null;
 				searchContext = driverFunc.get();
