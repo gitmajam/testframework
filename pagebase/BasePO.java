@@ -5,10 +5,13 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.BiConsumer;
+import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.Logger;
 import org.openqa.selenium.Alert;
@@ -336,6 +339,61 @@ public abstract class BasePO<T> {
 		JavascriptExecutor js = (JavascriptExecutor) driverFunc.get();
 		js.executeScript("return arguments[0].currentTime=" + currentTime, video);
 		return (T) this;
+	}
+
+	/*
+	 * this method retrieve the table headers by joining the headers that there are
+	 * in the table
+	 */
+	public List<String> readTableHeaders() {
+		List<WebElement> headerList = this.webElement.findElements(By.xpath(".//thead"));
+		Iterator<WebElement> headerListIt = headerList.stream().filter(e -> e.isDisplayed())
+				.collect(Collectors.toList()).iterator();
+		List<String> joinedHeaders = new ArrayList<String>();
+		while (headerListIt.hasNext()) {
+			Iterator<WebElement> columnHeaderList = headerListIt.next().findElements(By.xpath(".//tr/*")).iterator();
+			List<String> columHeaders = new ArrayList<String>();
+			while (columnHeaderList.hasNext()) {
+				WebElement element = columnHeaderList.next();
+				Integer colspan = Integer
+						.parseInt(element.getAttribute("colspan") == null ? "1" : element.getAttribute("colspan"));
+				for (int i = 0; i < colspan; ++i) {
+					columHeaders.add(element.getText().trim());
+				}
+			}
+			if (joinedHeaders.isEmpty()) {
+				joinedHeaders.addAll(columHeaders);
+			} else {
+				for (int i = 0; i < joinedHeaders.size(); ++i) {
+					joinedHeaders.set(i, joinedHeaders.get(i).concat(" ").concat(columHeaders.get(i)));
+				}
+			}
+		}
+		return joinedHeaders;
+	}
+	
+	/*
+	 * this method retrieve the table headers and body storing it in a list of maps
+	 */
+	public List<Map<String,String>> readTable() {
+		List<String> headerList = readTableHeaders();
+		List<WebElement> rowList = this.webElement.findElements(By.xpath(".//tbody/tr"));
+		Iterator<WebElement> rowListIt = rowList.stream().filter(e -> e.isDisplayed()).collect(Collectors.toList())
+				.iterator();
+		List<Map<String,String>> dataList = new ArrayList<Map<String,String>>();
+		while (rowListIt.hasNext()) {
+			Iterator<WebElement> rowDataListIt = rowListIt.next().findElements(By.xpath(".//*")).iterator();
+			Map<String,String> dataMap = new HashMap<String,String>();
+			List<String> dataRowList = new ArrayList<String>();
+			while (rowDataListIt.hasNext()) {
+				dataRowList.add(rowDataListIt.next().getText().trim());
+			}
+			for (int i = 0; i < headerList.size(); ++i) {
+				dataMap.put(headerList.get(i), dataRowList.get(i));
+			}
+			dataList.add(dataMap);
+		}
+		return dataList;
 	}
 
 	/* Utils */
