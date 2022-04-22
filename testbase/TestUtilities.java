@@ -29,6 +29,7 @@ import org.openqa.selenium.OutputType;
 import org.openqa.selenium.TakesScreenshot;
 import org.openqa.selenium.WebDriver;
 import org.testng.ITestContext;
+import org.testng.annotations.DataProvider;
 
 import com.google.common.base.Supplier;
 import com.opencsv.CSVReader;
@@ -44,7 +45,8 @@ public class TestUtilities {
 	protected String testMethodName;
 	protected Logger log;
 	protected String dataProviderFilePath;
-
+	protected String language = PropertiesFile.getProperties("language");
+	protected Map<String, String> dictionary = language != null ? csvTranslationsReader() : null;
 	protected Supplier<WebDriver> driverFunc = () -> DriverFactory.getInstance().getDriver();
 
 	public String getDataProviderFilePath() {
@@ -72,7 +74,7 @@ public class TestUtilities {
 		log.info("opening url : " + pageSupplier.get().getPageUrl());
 		driverFunc.get().get(pageSupplier.get().getPageUrl());
 		GUtils.waitForPageToLoad();
-		//sleep(delay);
+		// sleep(delay);
 		return pageSupplier;
 	}
 
@@ -142,7 +144,32 @@ public class TestUtilities {
 			}
 		}
 		return null;
+	}
 
+	public Map<String, String> csvTranslationsReader() {
+		Map<String, String> dictionary = new HashMap<String, String>();
+		String translationFile = this.language.contentEquals("es") ? "dictionaryEsEs.csv" : "dictionaryEsEn.csv";
+		String translationsPath = System.getProperty("user.dir") + File.separator + "src" + File.separator + "test"
+				+ File.separator + "resources" + File.separator + "providerFiles" + File.separator + translationFile;
+
+		File file = new File(translationsPath);
+		try {
+			CSVReader reader = new CSVReader(new FileReader(file));
+			String[] dataParts;
+			while ((dataParts = reader.readNext()) != null) {
+				dictionary.put(dataParts[0], dataParts[1]);
+			}
+			reader.close();
+		} catch (FileNotFoundException e) {
+			throw new RuntimeException("File " + translationsPath + " was not found.\n" + e.getStackTrace().toString());
+		} catch (IOException e) {
+			throw new RuntimeException(
+					"Could not read " + translationsPath + " file.\n" + e.getStackTrace().toString());
+		} catch (CsvValidationException e) {
+			throw new RuntimeException(
+					"Could not read next line in csv file" + translationsPath + "\n" + e.getStackTrace().toString());
+		}
+		return dictionary;
 	}
 
 	public Iterator<Map<String, String>> csvReader(String pathname) {

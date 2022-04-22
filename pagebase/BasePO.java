@@ -248,7 +248,7 @@ public abstract class BasePO<T> {
 	}
 
 	public abstract String getPageUrl();
-
+	
 	/* asserts */
 
 	public T ifFoundOrElse(Runnable runFound, Runnable runElse) {
@@ -407,4 +407,5 @@ public abstract class BasePO<T> {
 	protected String getSystemTime() {
 		return "-" + new SimpleDateFormat("HHmmssSSS").format(new Date());
 	}
+
 }

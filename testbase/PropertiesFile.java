@@ -20,7 +20,7 @@ public class PropertiesFile {
 			// Load properties file
 			prop.load(input);
 			// get values from properties file
-			return prop.getProperty(key);
+			return prop.containsKey(key) ? prop.getProperty(key) : null;
 		} catch (Exception exp) {
 			System.out.println(exp.getMessage());
 			System.out.println(exp.getCause());
