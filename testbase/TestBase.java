@@ -13,6 +13,7 @@ import org.testng.annotations.Parameters;
 public class TestBase extends TestUtilities {
 
 	protected TestLoggerFactory loggerFactory = null;
+	protected SoftAssertFactory softAssertFactory = null;
 	protected DriverFactory driverFactory;
 
 	@Parameters({ "browser" })
@@ -23,6 +24,7 @@ public class TestBase extends TestUtilities {
 
 		driverFactory = DriverFactory.getInstance();
 		loggerFactory = TestLoggerFactory.getInstance();
+		softAssertFactory = SoftAssertFactory.getInstance();
 
 		loggerFactory.createLogger(testName);
 		log = loggerFactory.getLogger();
@@ -31,6 +33,8 @@ public class TestBase extends TestUtilities {
 		driverFactory.createDriver(browser);
 		log.info("drive recien creado = " + driverFactory.getDriver().hashCode());
 		driverFactory.getDriver().manage().window().maximize();
+		
+		softAssertFactory.createSoftAssert();
 	}
 
 	@AfterMethod(alwaysRun = true)

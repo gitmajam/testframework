@@ -30,6 +30,7 @@ import org.openqa.selenium.TakesScreenshot;
 import org.openqa.selenium.WebDriver;
 import org.testng.ITestContext;
 import org.testng.annotations.DataProvider;
+import org.testng.asserts.SoftAssert;
 
 import com.google.common.base.Supplier;
 import com.opencsv.CSVReader;
@@ -48,6 +49,7 @@ public class TestUtilities {
 	protected String language = PropertiesFile.getProperties("language");
 	protected Map<String, String> dictionary = language != null ? csvTranslationsReader() : null;
 	protected Supplier<WebDriver> driverFunc = () -> DriverFactory.getInstance().getDriver();
+	protected Supplier<SoftAssert> softAssertSupplier = () -> SoftAssertFactory.getInstance().getSoftAsser();
 
 	public String getDataProviderFilePath() {
 		return dataProviderFilePath;

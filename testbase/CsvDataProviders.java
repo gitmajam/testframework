@@ -37,12 +37,19 @@ public class CsvDataProviders {
 
 	@DataProvider(name = "csvReader", parallel = true)
 	public static Iterator<Object[]> csvReader(Method method) {
-		List<Object[]> list = new ArrayList<Object[]>();
-		String pathname = "src" + File.separator + "test" + File.separator + "resources" + File.separator
-				+ method.getDeclaringClass().getSimpleName() + File.separator + "dataproviders" + File.separator
-				+ method.getName() + ".csv";
+		String path = null;
 
-		File file = new File(pathname);
+		// accesing to classfield from caller class by reflection
+		try {
+			Field field = method.getDeclaringClass().getDeclaredField("dataProviderFilePath");
+			Object testObj = method.getDeclaringClass().getDeclaredConstructor().newInstance();
+			path = (String) field.get(testObj);
+		} catch (Exception e1) {
+			e1.printStackTrace();
+		}
+		
+		List<Object[]> list = new ArrayList<Object[]>();
+		File file = new File(path);
 		try {
 			CSVReader reader = new CSVReader(new FileReader(file));
 			String[] keys = reader.readNext();
@@ -61,12 +68,12 @@ public class CsvDataProviders {
 			}
 			reader.close();
 		} catch (FileNotFoundException e) {
-			throw new RuntimeException("File " + pathname + " was not found.\n" + e.getStackTrace().toString());
+			throw new RuntimeException("File " + path + " was not found.\n" + e.getStackTrace().toString());
 		} catch (IOException e) {
-			throw new RuntimeException("Could not read " + pathname + " file.\n" + e.getStackTrace().toString());
+			throw new RuntimeException("Could not read " + path + " file.\n" + e.getStackTrace().toString());
 		} catch (CsvValidationException e) {
 			throw new RuntimeException(
-					"Could not read next line in csv file" + pathname + "\n" + e.getStackTrace().toString());
+					"Could not read next line in csv file" + path + "\n" + e.getStackTrace().toString());
 		}
 
 		return list.iterator();
@@ -196,17 +203,17 @@ public class CsvDataProviders {
 	@DataProvider(name = "csvReaderMethodFile", parallel = false)
 	public static Iterator<Object[]> csvReaderMethodFile(Method method) {
 		String path = null;
-		
-		//accesing to classfield from caller class by reflection
+
+		// accesing to classfield from caller class by reflection
 		try {
 			Field field = method.getDeclaringClass().getDeclaredField("dataProviderFilePath");
-			Object  testObj = method.getDeclaringClass().getDeclaredConstructor().newInstance();
-			path =  (String) field.get(testObj);	
+			Object testObj = method.getDeclaringClass().getDeclaredConstructor().newInstance();
+			path = (String) field.get(testObj);
 		} catch (Exception e1) {
 			e1.printStackTrace();
-		} 
-		
-		//provider
+		}
+
+		// provider
 		List<Object[]> list = new ArrayList<Object[]>();
 		File file = new File(path);
 		try {
@@ -217,7 +224,8 @@ public class CsvDataProviders {
 				while ((dataParts = reader.readNext()) != null) {
 					String todo = dataParts[0];
 					if (todo.contentEquals("TRUE")) {
-						if (method.getName().equals(dataParts[1]) || method.getName().contains(dataParts[1]) || method.getName().equals("")) {
+						if (method.getName().equals(dataParts[1]) || method.getName().contains(dataParts[1])
+								|| method.getName().equals("")) {
 							Map<String, String> testData = new HashMap<String, String>();
 							for (int i = 0; i < keys.length; i++) {
 								testData.put(keys[i], dataParts[i]);
@@ -244,16 +252,16 @@ public class CsvDataProviders {
 	@DataProvider(name = "csvReaderMatrix", parallel = false)
 	public static Iterator<Object[]> csvReaderMatrix(Method method, ITestContext testContext) {
 		String path = null;
-		
-		//accesing to classfield from caller class by reflection
+
+		// accesing to classfield from caller class by reflection
 		try {
 			Field field = method.getDeclaringClass().getDeclaredField("dataProviderFilePath");
-			Object  testObj = method.getDeclaringClass().getDeclaredConstructor().newInstance();
-			path =  (String) field.get(testObj);	
+			Object testObj = method.getDeclaringClass().getDeclaredConstructor().newInstance();
+			path = (String) field.get(testObj);
 		} catch (Exception e1) {
 			e1.printStackTrace();
-		} 
-		
+		}
+
 		List<Object[]> list = new ArrayList<Object[]>();
 		List<Map<String, String>> dataList = new ArrayList<Map<String, String>>();
 		File file = new File(path);

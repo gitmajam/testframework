@@ -24,10 +24,12 @@ import org.openqa.selenium.WebElement;
 import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
+import org.testng.asserts.SoftAssert;
 
 import com.google.common.base.Predicate;
 import com.google.common.base.Supplier;
 import com.tribu.qaselenium.testframework.testbase.DriverFactory;
+import com.tribu.qaselenium.testframework.testbase.SoftAssertFactory;
 import com.tribu.qaselenium.testframework.testbase.TestLoggerFactory;
 
 public abstract class BasePO<T> {
@@ -40,6 +42,7 @@ public abstract class BasePO<T> {
 	protected List<Predicate<WebElement>> predicatesElementList = new ArrayList<Predicate<WebElement>>();
 	protected Logger log = TestLoggerFactory.getInstance().getLogger();
 	protected Supplier<WebDriver> driverFunc = () -> DriverFactory.getInstance().getDriver();
+	protected Supplier<SoftAssert> softAssertSupplier = () -> SoftAssertFactory.getInstance().getSoftAsser();
 	protected String resourcesPath = System.getProperty("user.dir") + File.separator + "src" + File.separator + "test"
 			+ File.separator + "resources" + File.separator;
 
@@ -63,7 +66,6 @@ public abstract class BasePO<T> {
 				baseElement = null;
 				searchContext = driverFunc.get();
 			}
-			predicateList.add(e -> e.isEnabled());
 			predicateList.add(e -> e.isDisplayed());
 			Collections.addAll(predicateList, predicates);
 			this.locator = by;
@@ -265,10 +267,30 @@ public abstract class BasePO<T> {
 		return (T) this;
 	}
 
+	public T assertExist(String... failText) {
+		String text = failText.length > 0 ? failText[0] : "";
+		String message = webElement != null ? "Element found " + text : "Element was not found " + text;
+		softAssertSupplier.get().assertTrue(webElement != null, message + ", " + this.locator.toString());
+		return (T) this;
+	}
+	
+	public T assertNotExist(String... failText) {
+		String text = failText.length > 0 ? failText[0] : "";
+		String message = webElement != null ? "Element found " + text : "Element was not found " + text;
+		softAssertSupplier.get().assertFalse(webElement != null, message + ", " + this.locator.toString());
+		return (T) this;
+	}
+	
 	public T assess(BiConsumer<Boolean, String> consumer, String... resultText) {
-		String text = resultText.length > 0 ? resultText[0] : null;
+		String text = resultText.length > 0 ? resultText[0] : "";
 		String message = webElement != null ? "Element found " + text : "Element was not found " + text;
 		consumer.accept(webElement != null, message + ", " + this.locator.toString());
+		return (T) this;
+	}
+	
+	public T assertAll(String... resultText) {
+		String text = resultText.length > 0 ? resultText[0] : "";
+		softAssertSupplier.get().assertAll(text);
 		return (T) this;
 	}
 
