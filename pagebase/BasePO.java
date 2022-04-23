@@ -42,7 +42,7 @@ public abstract class BasePO<T> {
 	protected List<Predicate<WebElement>> predicatesElementList = new ArrayList<Predicate<WebElement>>();
 	protected Logger log = TestLoggerFactory.getInstance().getLogger();
 	protected Supplier<WebDriver> driverFunc = () -> DriverFactory.getInstance().getDriver();
-	protected Supplier<SoftAssert> softAssertSupplier = () -> SoftAssertFactory.getInstance().getSoftAsser();
+	protected Supplier<SoftAssert> softAssertSupplier = () -> SoftAssertFactory.getInstance().getSoftAssert();
 	protected String resourcesPath = System.getProperty("user.dir") + File.separator + "src" + File.separator + "test"
 			+ File.separator + "resources" + File.separator;
 

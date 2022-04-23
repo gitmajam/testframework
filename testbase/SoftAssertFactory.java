@@ -31,7 +31,7 @@ public class SoftAssertFactory {
 		softAssert.set(new SoftAssert());
 	}
 
-	public SoftAssert getSoftAsser() {
+	public SoftAssert getSoftAssert() {
 		return softAssert.get();
 	}
 }

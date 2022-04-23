@@ -49,7 +49,7 @@ public class TestUtilities {
 	protected String language = PropertiesFile.getProperties("language");
 	protected Map<String, String> dictionary = language != null ? csvTranslationsReader() : null;
 	protected Supplier<WebDriver> driverFunc = () -> DriverFactory.getInstance().getDriver();
-	protected Supplier<SoftAssert> softAssertSupplier = () -> SoftAssertFactory.getInstance().getSoftAsser();
+	protected Supplier<SoftAssert> softAssertSupplier = () -> SoftAssertFactory.getInstance().getSoftAssert();
 
 	public String getDataProviderFilePath() {
 		return dataProviderFilePath;
