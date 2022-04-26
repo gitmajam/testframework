@@ -281,6 +281,7 @@ public abstract class BasePO<T> {
 		return (T) this;
 	}
 	
+	@Deprecated
 	public T assess(BiConsumer<Boolean, String> consumer, String... resultText) {
 		String text = resultText.length > 0 ? resultText[0] : "";
 		String message = webElement != null ? "Element found " + text : "Element was not found " + text;

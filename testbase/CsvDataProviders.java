@@ -5,7 +5,6 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -34,11 +33,10 @@ public class CsvDataProviders {
 	 * 
 	 * if the parallel argument is false then the tests are run sequentially
 	 */
-
+	
 	@DataProvider(name = "csvReader", parallel = true)
 	public static Iterator<Object[]> csvReader(Method method) {
 		String path = null;
-
 		// accesing to classfield from caller class by reflection
 		try {
 			Field field = method.getDeclaringClass().getDeclaredField("dataProviderFilePath");
@@ -252,7 +250,6 @@ public class CsvDataProviders {
 	@DataProvider(name = "csvReaderMatrix", parallel = false)
 	public static Iterator<Object[]> csvReaderMatrix(Method method, ITestContext testContext) {
 		String path = null;
-
 		// accesing to classfield from caller class by reflection
 		try {
 			Field field = method.getDeclaringClass().getDeclaredField("dataProviderFilePath");

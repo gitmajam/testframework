@@ -4,9 +4,7 @@ import java.lang.reflect.Method;
 
 import org.testng.ITestContext;
 import org.testng.annotations.AfterMethod;
-import org.testng.annotations.AfterTest;
 import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Optional;
 import org.testng.annotations.Parameters;
 
@@ -16,7 +14,7 @@ public class TestBase extends TestUtilities {
 	protected SoftAssertFactory softAssertFactory = null;
 	protected DriverFactory driverFactory;
 
-	@Parameters({ "browser" })
+	@Parameters({ "browser"})
 	@BeforeMethod(alwaysRun = true)
 	public void setUp(Method method, @Optional("chrome") String browser, ITestContext context) {
 		testSuiteName = context.getSuite().getName();
