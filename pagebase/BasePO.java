@@ -24,6 +24,7 @@ import org.openqa.selenium.WebElement;
 import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
+import org.testng.annotations.Optional;
 import org.testng.asserts.SoftAssert;
 
 import com.google.common.base.Predicate;
@@ -52,15 +53,15 @@ public abstract class BasePO<T> {
 	 * method executes findElements without any filter , only verifies if the
 	 * element is in the DOM.
 	 */
-	protected void setWebElement(By by, Predicate<WebElement>[] predicates) {
+	protected void setWebElement(By by, Predicate<WebElement>... predicates) {
 		List<Predicate<WebElement>> predicateList = new ArrayList<Predicate<WebElement>>();
 		Collections.addAll(predicatesElementList, predicates);
 
-		if (!(webElement == null && by.toString().contains(" .//"))) {
-			if (by.toString().contains(" .//") && baseElement == null) {
+		if (!(webElement == null && by.toString().contains(" ./"))) {
+			if (by.toString().contains(" ./") && baseElement == null) {
 				baseElement = webElement;
 				searchContext = webElement;
-			} else if (by.toString().contains(" .//") && baseElement != null) {
+			} else if (by.toString().contains(" ./") && baseElement != null) {
 				searchContext = baseElement;
 			} else {
 				baseElement = null;
@@ -91,8 +92,18 @@ public abstract class BasePO<T> {
 		return this.locator;
 	}
 
+	public WebElement getBaseElement() {
+		return baseElement;
+	}
+
 	public WebElement getWebElement() {
 		return this.webElement;
+	}
+
+	public T getParent() {
+		setWebElement(By.xpath("./.."));
+		baseElement = webElement;
+		return (T) this;
 	}
 
 	// simple click method without return's supplier object
@@ -250,7 +261,7 @@ public abstract class BasePO<T> {
 	}
 
 	public abstract String getPageUrl();
-	
+
 	/* asserts */
 
 	public T ifFoundOrElse(Runnable runFound, Runnable runElse) {
@@ -273,14 +284,21 @@ public abstract class BasePO<T> {
 		softAssertSupplier.get().assertTrue(webElement != null, message + ", " + this.locator.toString());
 		return (T) this;
 	}
-	
+
 	public T assertNotExist(String... failText) {
 		String text = failText.length > 0 ? failText[0] : "";
 		String message = webElement != null ? "Element found " + text : "Element was not found " + text;
 		softAssertSupplier.get().assertFalse(webElement != null, message + ", " + this.locator.toString());
 		return (T) this;
 	}
-	
+
+	public T assertDownload(String fileName, String... downloadPath) {
+		String path = downloadPath.length > 0 ? downloadPath[0] : System.getProperty("user.dir");
+		softAssertSupplier.get().assertTrue(this.isFileDownloaded(path, fileName),
+				"file " + fileName + " was not downloaded");
+		return (T) this;
+	}
+
 	@Deprecated
 	public T assess(BiConsumer<Boolean, String> consumer, String... resultText) {
 		String text = resultText.length > 0 ? resultText[0] : "";
@@ -288,7 +306,7 @@ public abstract class BasePO<T> {
 		consumer.accept(webElement != null, message + ", " + this.locator.toString());
 		return (T) this;
 	}
-	
+
 	public T assertAll(String... resultText) {
 		String text = resultText.length > 0 ? resultText[0] : "";
 		softAssertSupplier.get().assertAll(text);
@@ -394,19 +412,19 @@ public abstract class BasePO<T> {
 		}
 		return joinedHeaders;
 	}
-	
+
 	/*
 	 * this method retrieve the table headers and body storing it in a list of maps
 	 */
-	public List<Map<String,String>> readTable() {
+	public List<Map<String, String>> readTable() {
 		List<String> headerList = readTableHeaders();
 		List<WebElement> rowList = this.webElement.findElements(By.xpath(".//tbody/tr"));
 		Iterator<WebElement> rowListIt = rowList.stream().filter(e -> e.isDisplayed()).collect(Collectors.toList())
 				.iterator();
-		List<Map<String,String>> dataList = new ArrayList<Map<String,String>>();
+		List<Map<String, String>> dataList = new ArrayList<Map<String, String>>();
 		while (rowListIt.hasNext()) {
 			Iterator<WebElement> rowDataListIt = rowListIt.next().findElements(By.xpath(".//*")).iterator();
-			Map<String,String> dataMap = new HashMap<String,String>();
+			Map<String, String> dataMap = new HashMap<String, String>();
 			List<String> dataRowList = new ArrayList<String>();
 			while (rowDataListIt.hasNext()) {
 				dataRowList.add(rowDataListIt.next().getText().trim());
