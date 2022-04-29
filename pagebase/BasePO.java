@@ -54,9 +54,8 @@ public abstract class BasePO<T> {
 	 * element is in the DOM.
 	 */
 	protected void setWebElement(By by, Predicate<WebElement>... predicates) {
-		List<Predicate<WebElement>> predicateList = new ArrayList<Predicate<WebElement>>();
+		predicatesElementList.clear();
 		Collections.addAll(predicatesElementList, predicates);
-
 		if (!(webElement == null && by.toString().contains(" ./"))) {
 			if (by.toString().contains(" ./") && baseElement == null) {
 				baseElement = webElement;
@@ -67,10 +66,8 @@ public abstract class BasePO<T> {
 				baseElement = null;
 				searchContext = driverFunc.get();
 			}
-			predicateList.add(e -> e.isDisplayed());
-			Collections.addAll(predicateList, predicates);
 			this.locator = by;
-			webElement = GUtils.waitForVisibilityByfilter(locator, searchContext, predicateList);
+			webElement = GUtils.waitForVisibilityByfilter(locator, searchContext, predicatesElementList);
 		}
 	}
 
@@ -85,6 +82,12 @@ public abstract class BasePO<T> {
 			message = "webElement is not absent";
 		}
 		log.info(message);
+		return (T) this;
+	}
+
+	// wait for an upload file or other time-loading feature
+	public T waitForLoad() {
+		this.webElement = GUtils.waitForLoad(locator, searchContext, predicatesElementList, 2L);
 		return (T) this;
 	}
 

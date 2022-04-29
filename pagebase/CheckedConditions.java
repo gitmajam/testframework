@@ -1,5 +1,6 @@
 package com.tribu.qaselenium.testframework.pagebase;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -76,6 +77,7 @@ public class CheckedConditions {
 			public WebElement apply(SearchContext context) {
 				try {
 					List<WebElement> elementList = context.findElements(locator);
+					predicateList.add(e -> e.isDisplayed());
 					predicateList.forEach(predicate -> elementList.removeIf(predicate.negate()));
 					return elementList.stream().findFirst().orElse(null);
 				} catch (NoSuchElementException e) {
