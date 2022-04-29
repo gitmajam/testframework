@@ -165,10 +165,10 @@ public abstract class BasePO<T> {
 			this.webElement.sendKeys(text);
 		} catch (Exception e) {
 			List<Predicate<WebElement>> predicateList = new ArrayList<Predicate<WebElement>>();
-			this.webElement = GUtils.waitForVisibilityByfilter(locator, searchContext, predicateList);
+			this.webElement = GUtils.waitForEnableStatusByfilter(locator, searchContext, predicateList);
 			try {
 				this.webElement.sendKeys(text);
-				log.info("Element found without isDisplayed filter");
+				log.info("Element found only with isEnable filter");
 			} catch (Exception error) {
 				e.printStackTrace();
 			}

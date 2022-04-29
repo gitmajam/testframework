@@ -44,6 +44,23 @@ public class GUtils {
 		return element;
 	}
 	
+	public static WebElement waitForEnableStatusByfilter(By locator, SearchContext searchContext,
+			List<Predicate<WebElement>> predicateList, Long... delays) {
+		Long timeOut = delays.length > 0 ? delays[0] : 4000;
+		WebElement element = null;
+		try {
+			Wait<SearchContext> wait = new FluentWait<SearchContext>(searchContext)
+					.withTimeout(Duration.ofMillis(timeOut))
+					.pollingEvery(Duration.ofMillis(500L))
+					.ignoring(NoSuchElementException.class, StaleElementReferenceException.class);
+
+			element = wait.until(CheckedConditions.enableStatusOfElementLocatedByFilter(locator, predicateList));
+		} catch (Exception e) {
+			log.info("timeout waiting for enable status of searchContext : " + searchContext + " locator : " + locator);
+		}
+		return element;
+	}
+	
 	//return a value diferent to null or timeout exception
 	public static WebElement waitForLoad(By locator, SearchContext searchContext,
 			List<Predicate<WebElement>> predicateList, Long... delays) {

@@ -95,6 +95,31 @@ public class CheckedConditions {
 		};
 	}
 	
+	public static CheckedCondition<WebElement> enableStatusOfElementLocatedByFilter(final By locator,
+			final List<Predicate<WebElement>> predicateList) {
+		return new CheckedCondition<WebElement>() {
+			@Override
+			public WebElement apply(SearchContext context) {
+				try {
+					List<WebElement> elementList = context.findElements(locator);
+					predicateList.add(e -> e.isEnabled());
+					predicateList.forEach(predicate -> elementList.removeIf(predicate.negate()));
+					return elementList.stream().findFirst().orElse(null);
+				} catch (NoSuchElementException e) {
+					log.info("NoSuchElementException");
+					return null;
+				} catch (StaleElementReferenceException e) {
+					return null;
+				}
+			}
+
+			@Override
+			public String toString() {
+				return "visibility of element located by " + locator;
+			}
+		};
+	}
+	
 	/**
 	 * @param locator   used to find the element
 	 * @param predicate used to filter the search
