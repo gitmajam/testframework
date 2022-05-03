@@ -112,10 +112,10 @@ public class GUtils {
 
 	public static void waitImageVisivility(By locator, SearchContext searchContext,
 			List<Predicate<WebElement>> predicateList, Long... delays) {
-		Long timeOut = delays.length > 0 ? delays[0] : 10000;
+		Long timeOut = delays.length > 0 ? delays[0] : 120L;
 		try {
 			Wait<SearchContext> wait = new FluentWait<SearchContext>(searchContext)
-					.withTimeout(Duration.ofMillis(timeOut))
+					.withTimeout(Duration.ofSeconds(timeOut))
 					.pollingEvery(Duration.ofMillis(500L))
 					.ignoring(NoSuchElementException.class, StaleElementReferenceException.class);
 

@@ -98,6 +98,11 @@ public abstract class BasePO<T> {
 	public WebElement getBaseElement() {
 		return baseElement;
 	}
+	
+	public T  setBaseElement() {
+		baseElement = this.webElement;
+		return (T) this;
+	}
 
 	public WebElement getWebElement() {
 		return this.webElement;
@@ -314,13 +319,6 @@ public abstract class BasePO<T> {
 		String text = resultText.length > 0 ? resultText[0] : "";
 		softAssertSupplier.get().assertAll(text);
 		return (T) this;
-	}
-
-	public Boolean verifyImage() {
-		Object result = ((JavascriptExecutor) driverFunc.get()).executeScript("return arguments[0].complete && "
-				+ "typeof arguments[0].naturalWidth != \"undefined\" && " + "arguments[0].naturalWidth > 0",
-				webElement);
-		return result instanceof Boolean ? (Boolean) result : false;
 	}
 
 	public boolean isFileDownloaded(String downloadPath, String fileName) {
