@@ -10,7 +10,6 @@ public class SoftAssertFactory {
 	// private constructor
 	private SoftAssertFactory() {
 		contador = contador + 1;// temp
-		System.out.println("*****loggerFactory-counter***** = " + contador);// temp
 	}
 
 	public static SoftAssertFactory getInstance() {

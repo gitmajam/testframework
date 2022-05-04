@@ -148,13 +148,25 @@ public abstract class BasePO<T> {
 		}
 		return pageSupplier;
 	}
+	
+	public T refresh() {
+		driverFunc.get().navigate().refresh();	
+		GUtils.waitForPageToLoad();
+		return (T) this;
+	}
 
-	// place (srcoll) de element at center of the viewport
-	public T centerElement() {
+	// place (srcoll) de element at center of the viewport, with delat after center in miliseconds
+	public T centerElement(Integer... delays) {
+		Integer delay = delays.length > 0 ? delays[0] : 0;
 		String centerElement = "var viewPortHeight = Math.max(document.documentElement.clientHeight, window.innerHeight || 0);"
 				+ "var elementTop = arguments[0].getBoundingClientRect().top;"
 				+ "window.scrollBy(0, elementTop-(viewPortHeight/2));";
 		((JavascriptExecutor) driverFunc.get()).executeScript(centerElement, webElement);
+		try {
+			Thread.sleep(delay);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
 		return (T) this;
 	}
 

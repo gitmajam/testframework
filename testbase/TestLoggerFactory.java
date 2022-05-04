@@ -11,7 +11,6 @@ public class TestLoggerFactory {
 	// private constructor
 	private TestLoggerFactory() {
 		contador = contador + 1;// temp
-		System.out.println("*****loggerFactory-counter***** = " + contador);// temp
 	}
 
 	public static TestLoggerFactory getInstance() {
