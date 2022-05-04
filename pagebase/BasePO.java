@@ -73,29 +73,22 @@ public abstract class BasePO<T> {
 
 	public T waitForNotVisibility() {
 		Boolean isInvisible = GUtils.waitForInvisibilityByfilter(locator, searchContext, predicatesElementList);
-		String message = null;
 		if (isInvisible == true) {
-			webElement = null;
-			message = "webElement is not longer visible";
 			this.webElement = null;
 		} else if (isInvisible == false) {
-			message = "webElement is still visible";
+			log.info("webElement is still visible");
 		}
-		log.info(message);
 		return (T) this;
 	}
 	
 	public T waitForNotPresence() {
 		Boolean isNotPresent = GUtils.waitForNotPresenceByfilter(locator, searchContext, predicatesElementList);
-		String message = null;
 		if (isNotPresent == true) {
-			webElement = null;
-			message = "webElement is not longer present";
 			this.webElement = null;
 		} else if (isNotPresent == false) {
-			message = "webElement is still present";
+			log.info("webElement is still present");
 		}
-		log.info(message);
+		
 		return (T) this;
 	}
 
