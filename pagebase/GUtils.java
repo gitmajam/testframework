@@ -81,16 +81,32 @@ public class GUtils {
 
 	public static Boolean waitForInvisibilityByfilter(By locator, SearchContext searchContext,
 			List<Predicate<WebElement>> predicateList) {
+		Boolean isNotPresent = false;
+		try {
+			Wait<SearchContext> wait = new FluentWait<SearchContext>(searchContext)
+					.withTimeout(Duration.ofMillis(10000L)).pollingEvery(Duration.ofMillis(500L))
+					.ignoring(NoSuchElementException.class, StaleElementReferenceException.class);
+
+			isNotPresent = wait.until(CheckedConditions.invisibilityOfElementLocatedByFilter(locator, predicateList));
+		} catch (Exception e) {
+			log.info("timeout waiting for not presence of locator : " + locator);
+			isNotPresent = false;
+		}
+		return isNotPresent;
+	}
+	
+	public static Boolean waitForNotPresenceByfilter(By locator, SearchContext searchContext,
+			List<Predicate<WebElement>> predicateList) {
 		Boolean isInvisible = false;
 		try {
 			Wait<SearchContext> wait = new FluentWait<SearchContext>(searchContext)
-					.withTimeout(Duration.ofMillis(1500L)).pollingEvery(Duration.ofMillis(500L))
+					.withTimeout(Duration.ofMillis(10000L)).pollingEvery(Duration.ofMillis(500L))
 					.ignoring(NoSuchElementException.class, StaleElementReferenceException.class);
 
-			isInvisible = wait.until(CheckedConditions.invisibilityOfElementLocatedByFilter(locator, predicateList));
+			isInvisible = wait.until(CheckedConditions.notPresenceOfElementLocatedByFilter(locator, predicateList));
 		} catch (Exception e) {
-			log.info("timeout waiting for visibility of locator : " + locator);
-			isInvisible = true;
+			log.info("timeout waiting for invisibility of locator : " + locator);
+			isInvisible = false;
 		}
 		return isInvisible;
 	}

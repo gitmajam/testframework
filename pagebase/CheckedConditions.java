@@ -131,8 +131,9 @@ public class CheckedConditions {
 		return new CheckedCondition<Boolean>() {
 			@Override
 			public Boolean apply(SearchContext context) {
-				List<WebElement> elementList = context.findElements(locator);
 				try {
+					List<WebElement> elementList = context.findElements(locator);
+					predicateList.add(e -> e.isDisplayed());
 					predicateList.forEach(predicate -> elementList.removeIf(predicate.negate()));
 					return elementList.size() == 0 ? true : false;
 				} catch (NoSuchElementException e) {
@@ -141,6 +142,35 @@ public class CheckedConditions {
 					// try block checks if the element is present but is invisible.
 					return true;
 				} catch (StaleElementReferenceException err) {
+					log.info("StaleElementReferenceException");
+					// Returns true because stale element reference implies that element
+					// is no longer visible.
+					return true;
+				}
+			}
+
+			@Override
+			public String toString() {
+				return "visibility of element located by " + locator;
+			}
+		};
+	}
+	
+	public static CheckedCondition<Boolean> notPresenceOfElementLocatedByFilter(final By locator,
+			final List<Predicate<WebElement>> predicateList) {
+		return new CheckedCondition<Boolean>() {
+			@Override
+			public Boolean apply(SearchContext context) {
+				try {
+					List<WebElement> elementList = context.findElements(locator);
+					predicateList.forEach(predicate -> elementList.removeIf(predicate.negate()));
+					return elementList.size() == 0 ? true : false;
+				} catch (NoSuchElementException e) {
+					log.info("NoSuchElementException");
+					// Returns true because the element is not present in DOM. 
+					return true;
+				} catch (StaleElementReferenceException err) {
+					log.info("StaleElementReferenceException");
 					// Returns true because stale element reference implies that element
 					// is no longer visible.
 					return true;

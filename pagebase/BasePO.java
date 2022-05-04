@@ -76,10 +76,24 @@ public abstract class BasePO<T> {
 		String message = null;
 		if (isInvisible == true) {
 			webElement = null;
-			message = "webElement is absent";
+			message = "webElement is not longer visible";
 			this.webElement = null;
 		} else if (isInvisible == false) {
-			message = "webElement is not absent";
+			message = "webElement is still visible";
+		}
+		log.info(message);
+		return (T) this;
+	}
+	
+	public T waitForNotPresence() {
+		Boolean isNotPresent = GUtils.waitForNotPresenceByfilter(locator, searchContext, predicatesElementList);
+		String message = null;
+		if (isNotPresent == true) {
+			webElement = null;
+			message = "webElement is not longer present";
+			this.webElement = null;
+		} else if (isNotPresent == false) {
+			message = "webElement is still present";
 		}
 		log.info(message);
 		return (T) this;
@@ -157,7 +171,7 @@ public abstract class BasePO<T> {
 
 	// place (srcoll) de element at center of the viewport, with delat after center in miliseconds
 	public T centerElement(Integer... delays) {
-		Integer delay = delays.length > 0 ? delays[0] : 0;
+		Integer delay = delays.length > 0 ? delays[0] : 100;
 		String centerElement = "var viewPortHeight = Math.max(document.documentElement.clientHeight, window.innerHeight || 0);"
 				+ "var elementTop = arguments[0].getBoundingClientRect().top;"
 				+ "window.scrollBy(0, elementTop-(viewPortHeight/2));";
