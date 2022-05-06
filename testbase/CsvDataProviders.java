@@ -34,7 +34,7 @@ public class CsvDataProviders {
 	 * if the parallel argument is false then the tests are run sequentially
 	 */
 	
-	@DataProvider(name = "csvReader", parallel = false)
+	@DataProvider(name = "csvReader", parallel = true)
 	public static Iterator<Object[]> csvReader(Method method) {
 		String path = null;
 		// accesing to classfield from caller class by reflection
