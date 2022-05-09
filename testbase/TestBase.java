@@ -14,7 +14,7 @@ public class TestBase extends TestUtilities {
 	protected SoftAssertFactory softAssertFactory = null;
 	protected DriverFactory driverFactory;
 
-	@Parameters({ "browser"})
+	@Parameters({"browser"})
 	@BeforeMethod(alwaysRun = true)
 	public void setUp(Method method, @Optional("chrome") String browser, ITestContext context) {
 		testSuiteName = context.getSuite().getName();

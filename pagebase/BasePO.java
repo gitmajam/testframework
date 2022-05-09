@@ -340,7 +340,7 @@ public abstract class BasePO<T> {
 		return (T) this;
 	}
 
-	public boolean isFileDownloaded(String downloadPath, String fileName) {
+	private boolean isFileDownloaded(String downloadPath, String fileName) {
 		boolean flag = false;
 		try {
 			Thread.sleep(3000);
