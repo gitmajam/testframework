@@ -71,7 +71,7 @@ public class TestUtilities {
 		return pageSupplier;
 	}
 
-	// open an url with a delay after
+	//open an url with a delay after
 	public <T extends BasePO<T>> Supplier<T> openUrl(Supplier<T> pageSupplier, long delay) {
 		log.info("opening url : " + pageSupplier.get().getPageUrl());
 		driverFunc.get().get(pageSupplier.get().getPageUrl());
