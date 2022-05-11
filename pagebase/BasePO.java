@@ -71,6 +71,11 @@ public abstract class BasePO<T> {
 		}
 	}
 
+	protected T setWebElement(WebElement element) {
+		this.webElement = element;
+		return (T) this;
+	}
+
 	public T waitForNotVisibility() {
 		Boolean isInvisible = GUtils.waitForInvisibilityByfilter(locator, searchContext, predicatesElementList);
 		if (isInvisible == true) {
@@ -80,7 +85,7 @@ public abstract class BasePO<T> {
 		}
 		return (T) this;
 	}
-	
+
 	public T waitForNotPresence() {
 		Boolean isNotPresent = GUtils.waitForNotPresenceByfilter(locator, searchContext, predicatesElementList);
 		if (isNotPresent == true) {
@@ -88,7 +93,7 @@ public abstract class BasePO<T> {
 		} else if (isNotPresent == false) {
 			log.info("webElement is still present");
 		}
-		
+
 		return (T) this;
 	}
 
@@ -105,8 +110,8 @@ public abstract class BasePO<T> {
 	public WebElement getBaseElement() {
 		return baseElement;
 	}
-	
-	public T  setBaseElement() {
+
+	public T setBaseElement() {
 		baseElement = this.webElement;
 		return (T) this;
 	}
@@ -155,14 +160,15 @@ public abstract class BasePO<T> {
 		}
 		return pageSupplier;
 	}
-	
+
 	public T refresh() {
-		driverFunc.get().navigate().refresh();	
+		driverFunc.get().navigate().refresh();
 		GUtils.waitForPageToLoad();
 		return (T) this;
 	}
 
-	// place (srcoll) de element at center of the viewport, with delat after center in miliseconds
+	// place (srcoll) de element at center of the viewport, with delat after center
+	// in miliseconds
 	public T centerElement(Integer... delays) {
 		Integer delay = delays.length > 0 ? delays[0] : 100;
 		String centerElement = "var viewPortHeight = Math.max(document.documentElement.clientHeight, window.innerHeight || 0);"
