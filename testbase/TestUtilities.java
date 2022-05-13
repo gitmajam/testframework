@@ -71,7 +71,7 @@ public class TestUtilities {
 		return pageSupplier;
 	}
 
-	//open an url with a delay after
+	// open an url with a delay after
 	public <T extends BasePO<T>> Supplier<T> openUrl(Supplier<T> pageSupplier, long delay) {
 		log.info("opening url : " + pageSupplier.get().getPageUrl());
 		driverFunc.get().get(pageSupplier.get().getPageUrl());
@@ -205,44 +205,51 @@ public class TestUtilities {
 		return list.iterator();
 	}
 
-	public Iterator<Map<String, String>> xlsxReader(String pathname) throws Exception {
+	public Iterator<Map<String, String>> xlsxReader(String pathname) {
 		List<Map<String, String>> list = new ArrayList<Map<String, String>>();
 		// Read the XLSX file into FileInputStream object
-		FileInputStream input_document = new FileInputStream(new File(pathname));
-		// Access input workbook in XSSFWorkbook object
-		XSSFWorkbook xls_workbook = new XSSFWorkbook(input_document);
-		// Access input worksheet
-		XSSFSheet worksheet = xls_workbook.getSheetAt(0);
-		// To iterate over the rows
-		Iterator<Row> rowIterator = worksheet.iterator();
-		Row keys = rowIterator.next();
-		if (keys != null) {
-			Row dataParts;
-			while (rowIterator.hasNext()) {
-				dataParts = rowIterator.next();
-				Map<String, String> testData = new HashMap<String, String>();
-				Iterator<Cell> cellIterator = dataParts.cellIterator();
-				while (cellIterator.hasNext()) {
-					Cell cell = cellIterator.next();
-					switch (cell.getCellType()) { // Identify CELL type
-					// you need to add more code here based on
-					// your requirement / transformations
-					case STRING:
-						testData.put(keys.getCell(cell.getColumnIndex()).getStringCellValue(),
-								cell.getStringCellValue());
-						break;
-					case NUMERIC:
-						testData.put(keys.getCell(cell.getColumnIndex()).getStringCellValue(),
-								String.valueOf((int) cell.getNumericCellValue()));
-						break;
-					default:
-						break;
+		try {
+			FileInputStream input_document;
+			input_document = new FileInputStream(new File(pathname));
+
+			// Access input workbook in XSSFWorkbook object
+			XSSFWorkbook xls_workbook = new XSSFWorkbook(input_document);
+			// Access input worksheet
+			XSSFSheet worksheet = xls_workbook.getSheetAt(0);
+			// To iterate over the rows
+			Iterator<Row> rowIterator = worksheet.iterator();
+			Row keys = rowIterator.next();
+			if (keys != null) {
+				Row dataParts;
+				while (rowIterator.hasNext()) {
+					dataParts = rowIterator.next();
+					Map<String, String> testData = new HashMap<String, String>();
+					Iterator<Cell> cellIterator = dataParts.cellIterator();
+					while (cellIterator.hasNext()) {
+						Cell cell = cellIterator.next();
+						switch (cell.getCellType()) { 
+						case STRING:
+							testData.put(keys.getCell(cell.getColumnIndex()).getStringCellValue(),
+									cell.getStringCellValue());
+							break;
+						case NUMERIC:
+							testData.put(keys.getCell(cell.getColumnIndex()).getStringCellValue(),
+									String.valueOf((int) cell.getNumericCellValue()));
+							break;
+						default:
+							break;
+						}
 					}
+					list.add(testData);
 				}
-				list.add(testData);
 			}
+			// close xlsx file
+			input_document.close();
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
-		input_document.close(); // close xlsx file
 		return list.iterator();
 	}
 
