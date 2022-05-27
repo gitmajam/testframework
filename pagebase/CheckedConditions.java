@@ -6,13 +6,17 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import org.openqa.selenium.By;
+import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.SearchContext;
 import org.openqa.selenium.StaleElementReferenceException;
+import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedCondition;
 
 import com.google.common.base.Predicate;
+import com.google.common.base.Supplier;
+import com.tribu.qaselenium.testframework.testbase.DriverFactory;
 
 /**
  * Canned {@link ExpectedCondition}s which are generally useful within webdriver
@@ -21,6 +25,7 @@ import com.google.common.base.Predicate;
 public class CheckedConditions {
 
 	private final static Logger log = Logger.getLogger(CheckedConditions.class.getName());
+	protected static Supplier<WebDriver> driverFunc = () -> DriverFactory.getInstance().getDriver();
 
 	private CheckedConditions() {
 		// Utility class
@@ -137,12 +142,10 @@ public class CheckedConditions {
 					predicateList.forEach(predicate -> elementList.removeIf(predicate.negate()));
 					return elementList.size() == 0 ? true : false;
 				} catch (NoSuchElementException e) {
-					log.info("NoSuchElementException");
 					// Returns true because the element is not present in DOM. The
 					// try block checks if the element is present but is invisible.
 					return true;
 				} catch (StaleElementReferenceException err) {
-					log.info("StaleElementReferenceException");
 					// Returns true because stale element reference implies that element
 					// is no longer visible.
 					return true;
@@ -166,11 +169,9 @@ public class CheckedConditions {
 					predicateList.forEach(predicate -> elementList.removeIf(predicate.negate()));
 					return elementList.size() == 0 ? true : false;
 				} catch (NoSuchElementException e) {
-					log.info("NoSuchElementException");
 					// Returns true because the element is not present in DOM. 
 					return true;
 				} catch (StaleElementReferenceException err) {
-					log.info("StaleElementReferenceException");
 					// Returns true because stale element reference implies that element
 					// is no longer visible.
 					return true;
@@ -180,6 +181,27 @@ public class CheckedConditions {
 			@Override
 			public String toString() {
 				return "visibility of element located by " + locator;
+			}
+		};
+	}
+
+	public static CheckedCondition<Boolean> imageLoadedByFilter(final WebElement element) {
+		return new CheckedCondition<Boolean>() {
+			@Override
+			public Boolean apply(SearchContext context) {
+				try {
+					boolean result = (boolean) ((JavascriptExecutor)driverFunc.get()) .executeScript("return arguments[0].complete " + "&& typeof arguments[0].naturalWidth != \"undefined\" " + "&& arguments[0].naturalWidth > 0", element);
+					return result;
+				} catch (NoSuchElementException e) {
+					return false;
+				} catch (StaleElementReferenceException e) {
+					return false;
+				}
+			}
+
+			@Override
+			public String toString() {
+				return "visibility of element located by " + element;
 			}
 		};
 	}

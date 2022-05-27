@@ -1,22 +1,20 @@
 package com.tribu.qaselenium.testframework.pagebase;
 
-import java.util.List;
 import java.time.Duration;
+import java.util.List;
+
 import org.apache.logging.log4j.Logger;
 import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.SearchContext;
+import org.openqa.selenium.StaleElementReferenceException;
 import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebDriverException;
 import org.openqa.selenium.WebElement;
-import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.FluentWait;
 import org.openqa.selenium.support.ui.Wait;
 import org.openqa.selenium.support.ui.WebDriverWait;
-import org.openqa.selenium.StaleElementReferenceException;
 
-import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.base.Supplier;
 import com.tribu.qaselenium.testframework.testbase.DriverFactory;
@@ -78,6 +76,20 @@ public class GUtils {
 		}
 		return element;
 	}
+	
+	public static void waitLoadImage(WebElement element, SearchContext searchContext, Long... delays) {
+		Long timeOut = delays.length > 0 ? delays[0] : 5L;
+		try {
+			Wait<SearchContext> wait = new FluentWait<SearchContext>(searchContext)
+					.withTimeout(Duration.ofSeconds(timeOut))
+					.pollingEvery(Duration.ofMillis(500L))
+					.ignoring(NoSuchElementException.class, StaleElementReferenceException.class);
+
+			wait.until(CheckedConditions.imageLoadedByFilter(element));
+		} catch (Exception e) {
+			log.info("WaitForImage timeout");
+		}
+	}
 
 	public static Boolean waitForInvisibilityByfilter(By locator, SearchContext searchContext,
 			List<Predicate<WebElement>> predicateList) {
@@ -123,23 +135,6 @@ public class GUtils {
 		} catch (Exception e) {
 			log.info("WaitForPageLoad timeout");
 			throw (e);
-		}
-	}
-
-	public static void waitImageVisivility(By locator, SearchContext searchContext,
-			List<Predicate<WebElement>> predicateList, Long... delays) {
-		Long timeOut = delays.length > 0 ? delays[0] : 120L;
-		try {
-			Wait<SearchContext> wait = new FluentWait<SearchContext>(searchContext)
-					.withTimeout(Duration.ofSeconds(timeOut))
-					.pollingEvery(Duration.ofMillis(500L))
-					.ignoring(NoSuchElementException.class, StaleElementReferenceException.class);
-
-			wait.until(context->((JavascriptExecutor) context).executeScript("return arguments[0].complete && "
-					+ "typeof arguments[0].naturalWidth != 'undefined' && " + "arguments[0].naturalWidth > 0",
-					searchContext.findElement(locator)));
-		} catch (Exception e) {
-			log.info("WaitForImage timeout");
 		}
 	}
 

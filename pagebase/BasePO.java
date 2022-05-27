@@ -29,6 +29,7 @@ import org.testng.asserts.SoftAssert;
 
 import com.google.common.base.Predicate;
 import com.google.common.base.Supplier;
+import com.tribu.qaselenium.pages.socios.SMHomeP;
 import com.tribu.qaselenium.testframework.testbase.DriverFactory;
 import com.tribu.qaselenium.testframework.testbase.SoftAssertFactory;
 import com.tribu.qaselenium.testframework.testbase.TestLoggerFactory;
@@ -99,7 +100,13 @@ public abstract class BasePO<T> {
 
 	// wait for an upload file or other time-loading feature
 	public T waitForLoad() {
-		this.webElement = GUtils.waitForLoad(locator, searchContext, predicatesElementList, 2L);
+		this.webElement = GUtils.waitForLoad(locator, searchContext, predicatesElementList, 15L);
+		return (T) this;
+	}
+
+	// wait for an upload file or other time-loading feature
+	public T waitLoadImg() {
+		GUtils.waitLoadImage(this.webElement, searchContext, 5L);
 		return (T) this;
 	}
 
@@ -329,6 +336,16 @@ public abstract class BasePO<T> {
 		String path = downloadPath.length > 0 ? downloadPath[0] : System.getProperty("user.dir");
 		softAssertSupplier.get().assertTrue(this.isFileDownloaded(path, fileName),
 				"file " + fileName + " was not downloaded");
+		return (T) this;
+	}
+
+	public T assertImgDisplayed(String... failText) {
+		String text = failText.length > 0 ? failText[0] : "";
+		softAssertSupplier.get()
+				.assertTrue((Boolean) ((JavascriptExecutor) this.driverFunc.get()).executeScript(
+						"return arguments[0].complete && " + "typeof arguments[0].naturalWidth != 'undefined' && "
+								+ "arguments[0].naturalWidth > 0",
+						this.webElement), text);
 		return (T) this;
 	}
 
