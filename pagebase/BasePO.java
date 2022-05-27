@@ -24,12 +24,10 @@ import org.openqa.selenium.WebElement;
 import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
-import org.testng.annotations.Optional;
 import org.testng.asserts.SoftAssert;
 
 import com.google.common.base.Predicate;
 import com.google.common.base.Supplier;
-import com.tribu.qaselenium.pages.socios.SMHomeP;
 import com.tribu.qaselenium.testframework.testbase.DriverFactory;
 import com.tribu.qaselenium.testframework.testbase.SoftAssertFactory;
 import com.tribu.qaselenium.testframework.testbase.TestLoggerFactory;
