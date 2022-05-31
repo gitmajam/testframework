@@ -318,14 +318,14 @@ public abstract class BasePO<T> {
 
 	public T assertExist(String... failText) {
 		String text = failText.length > 0 ? failText[0] : "";
-		String message = webElement != null ? "Element found " + text : "Element was not found " + text;
+		String message = webElement != null ? "Element found: " + text : "Element was not found: " + text;
 		softAssertSupplier.get().assertTrue(webElement != null, message + ", " + this.locator.toString());
 		return (T) this;
 	}
 
 	public T assertNotExist(String... failText) {
 		String text = failText.length > 0 ? failText[0] : "";
-		String message = webElement != null ? "Element found " + text : "Element was not found " + text;
+		String message = webElement != null ? "Element found: " + text : "Element was not found: " + text;
 		softAssertSupplier.get().assertFalse(webElement != null, message + ", " + this.locator.toString());
 		return (T) this;
 	}
