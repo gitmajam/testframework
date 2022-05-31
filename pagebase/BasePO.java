@@ -138,7 +138,7 @@ public abstract class BasePO<T> {
 		} catch (Exception e) {
 			JavascriptExecutor executor = (JavascriptExecutor) driverFunc.get();
 			executor.executeScript("arguments[0].click();", webElement);
-			log.info("click por javascript : " + this.locator);
+			log.info("click por javascript : " + webElement);
 		}
 		GUtils.waitForPageToLoad();
 		return (T) this;
