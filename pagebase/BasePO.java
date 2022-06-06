@@ -126,8 +126,9 @@ public abstract class BasePO<T> {
 	}
 
 	public T getParent() {
-		setWebElement(By.xpath("./.."));
 		baseElement = webElement;
+		setWebElement(By.xpath("./.."));
+		this.setBaseElement();
 		return (T) this;
 	}
 
