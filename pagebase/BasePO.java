@@ -23,6 +23,7 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.Select;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.testng.asserts.SoftAssert;
 
@@ -200,11 +201,10 @@ public abstract class BasePO<T> {
 		try {
 			this.webElement.sendKeys(text);
 		} catch (Exception e) {
-			List<Predicate<WebElement>> predicateList = new ArrayList<Predicate<WebElement>>();
-			this.webElement = GUtils.waitForEnableStatusByfilter(locator, searchContext, predicateList);
+			this.webElement = GUtils.waitForEnableStatusByfilter(locator, searchContext, predicatesElementList);
 			try {
+				log.info("Element found only with isEnable filter in sendKeys method : " + webElement.hashCode());
 				this.webElement.sendKeys(text);
-				log.info("Element found only with isEnable filter");
 			} catch (Exception error) {
 				e.printStackTrace();
 			}
@@ -250,6 +250,12 @@ public abstract class BasePO<T> {
 			log.info("Key word is not valid");
 			break;
 		}
+		return (T) this;
+	}
+	
+	public T selectElement(String value) {
+		Select dropdown = new Select(this.webElement);
+		dropdown.selectByVisibleText(value);
 		return (T) this;
 	}
 
