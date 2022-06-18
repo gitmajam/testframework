@@ -1,5 +1,6 @@
 package com.tribu.qaselenium.testframework.pagebase;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.logging.Logger;
@@ -80,10 +81,11 @@ public class CheckedConditions {
 		return new CheckedCondition<WebElement>() {
 			@Override
 			public WebElement apply(SearchContext context) {
+				List<Predicate<WebElement>> predicateListLocal = new ArrayList<Predicate<WebElement>>(predicateList);
 				try {
 					List<WebElement> elementList = context.findElements(locator);
-					predicateList.add(e -> e.isDisplayed());
-					predicateList.forEach(predicate -> elementList.removeIf(predicate.negate()));
+					predicateListLocal.add(e -> e.isDisplayed());
+					predicateListLocal.forEach(predicate -> elementList.removeIf(predicate.negate()));
 					return elementList.stream().findFirst().orElse(null);
 				} catch (NoSuchElementException e) {
 					log.info("NoSuchElementException");
@@ -105,10 +107,11 @@ public class CheckedConditions {
 		return new CheckedCondition<WebElement>() {
 			@Override
 			public WebElement apply(SearchContext context) {
+				List<Predicate<WebElement>> predicateListLocal = new ArrayList<Predicate<WebElement>>(predicateList);
 				try {
 					List<WebElement> elementList = context.findElements(locator);
-					predicateList.add(e -> e.isEnabled());
-					predicateList.forEach(predicate -> elementList.removeIf(predicate.negate()));
+					predicateListLocal.add(e -> e.isEnabled());
+					predicateListLocal.forEach(predicate -> elementList.removeIf(predicate.negate()));
 					return elementList.stream().findFirst().orElse(null);
 				} catch (NoSuchElementException e) {
 					log.info("NoSuchElementException");
@@ -136,10 +139,11 @@ public class CheckedConditions {
 		return new CheckedCondition<Boolean>() {
 			@Override
 			public Boolean apply(SearchContext context) {
+				List<Predicate<WebElement>> predicateListLocal = new ArrayList<Predicate<WebElement>>(predicateList);
 				try {
 					List<WebElement> elementList = context.findElements(locator);
-					predicateList.add(e -> e.isDisplayed());
-					predicateList.forEach(predicate -> elementList.removeIf(predicate.negate()));
+					predicateListLocal.add(e -> e.isDisplayed());
+					predicateListLocal.forEach(predicate -> elementList.removeIf(predicate.negate()));
 					return elementList.size() == 0 ? true : false;
 				} catch (NoSuchElementException e) {
 					// Returns true because the element is not present in DOM. The
@@ -164,9 +168,10 @@ public class CheckedConditions {
 		return new CheckedCondition<Boolean>() {
 			@Override
 			public Boolean apply(SearchContext context) {
+				List<Predicate<WebElement>> predicateListLocal = new ArrayList<Predicate<WebElement>>(predicateList);
 				try {
 					List<WebElement> elementList = context.findElements(locator);
-					predicateList.forEach(predicate -> elementList.removeIf(predicate.negate()));
+					predicateListLocal.forEach(predicate -> elementList.removeIf(predicate.negate()));
 					return elementList.size() == 0 ? true : false;
 				} catch (NoSuchElementException e) {
 					// Returns true because the element is not present in DOM. 

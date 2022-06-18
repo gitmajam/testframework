@@ -40,7 +40,7 @@ public abstract class BasePO<T> {
 	private SearchContext searchContext; // Page title for switch to this page
 	protected String PTitle;
 	protected WebElement baseElement;
-	protected List<Predicate<WebElement>> predicatesElementList = new ArrayList<Predicate<WebElement>>();
+	private List<Predicate<WebElement>> predicatesElementList = new ArrayList<Predicate<WebElement>>();
 	protected Logger log = TestLoggerFactory.getInstance().getLogger();
 	protected Supplier<WebDriver> driverFunc = () -> DriverFactory.getInstance().getDriver();
 	protected Supplier<SoftAssert> softAssertSupplier = () -> SoftAssertFactory.getInstance().getSoftAssert();
@@ -140,7 +140,7 @@ public abstract class BasePO<T> {
 		} catch (Exception e) {
 			JavascriptExecutor executor = (JavascriptExecutor) driverFunc.get();
 			executor.executeScript("arguments[0].click();", webElement);
-			log.info("click por javascript : " + webElement);
+			log.info("click by javascript : " + webElement);
 		}
 		GUtils.waitForPageToLoad();
 		return (T) this;
@@ -200,10 +200,9 @@ public abstract class BasePO<T> {
 	public T type(String text) {
 		try {
 			this.webElement.sendKeys(text);
-		} catch (Exception e) {
+		} catch (NullPointerException e) {
 			this.webElement = GUtils.waitForEnableStatusByfilter(locator, searchContext, predicatesElementList);
 			try {
-				log.info("Element found only with isEnable filter in sendKeys method : " + webElement.hashCode());
 				this.webElement.sendKeys(text);
 			} catch (Exception error) {
 				e.printStackTrace();
@@ -291,7 +290,7 @@ public abstract class BasePO<T> {
 			Alert alert = wait.until(ExpectedConditions.alertIsPresent());
 			alert.accept();
 		} catch (Exception e) {
-			log.info(e);
+			e.printStackTrace();
 		}
 		return (T) this;
 	}
