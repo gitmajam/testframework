@@ -1,4 +1,4 @@
-package com.tribu.qaselenium.testframework.pagebase;
+package com.tribu.qaselenium.testframework.utilities;
 
 import java.util.ArrayList;
 import java.util.Collections;

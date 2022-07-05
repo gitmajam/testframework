@@ -32,6 +32,7 @@ import com.google.common.base.Supplier;
 import com.tribu.qaselenium.testframework.testbase.DriverFactory;
 import com.tribu.qaselenium.testframework.testbase.SoftAssertFactory;
 import com.tribu.qaselenium.testframework.testbase.TestLoggerFactory;
+import com.tribu.qaselenium.testframework.utilities.WaitUtils;
 
 public abstract class BasePO<T> {
 
@@ -67,7 +68,7 @@ public abstract class BasePO<T> {
 				searchContext = driverFunc.get();
 			}
 			this.locator = by;
-			webElement = GUtils.waitForVisibilityByfilter(locator, searchContext, predicatesElementList);
+			webElement = WaitUtils.waitForVisibilityByfilter(locator, searchContext, predicatesElementList);
 		}
 	}
 
@@ -77,7 +78,7 @@ public abstract class BasePO<T> {
 	}
 
 	public T waitForNotVisibility() {
-		Boolean isInvisible = GUtils.waitForInvisibilityByfilter(locator, searchContext, predicatesElementList);
+		Boolean isInvisible = WaitUtils.waitForInvisibilityByfilter(locator, searchContext, predicatesElementList);
 		if (isInvisible == true) {
 			this.webElement = null;
 		} else if (isInvisible == false) {
@@ -87,7 +88,7 @@ public abstract class BasePO<T> {
 	}
 
 	public T waitForNotPresence() {
-		Boolean isNotPresent = GUtils.waitForNotPresenceByfilter(locator, searchContext, predicatesElementList);
+		Boolean isNotPresent = WaitUtils.waitForNotPresenceByfilter(locator, searchContext, predicatesElementList);
 		if (isNotPresent == true) {
 			this.webElement = null;
 		} else if (isNotPresent == false) {
@@ -99,13 +100,13 @@ public abstract class BasePO<T> {
 
 	// wait for an upload file or other time-loading feature
 	public T waitForLoad() {
-		this.webElement = GUtils.waitForLoad(locator, searchContext, predicatesElementList, 15L);
+		this.webElement = WaitUtils.waitForLoad(locator, searchContext, predicatesElementList, 15L);
 		return (T) this;
 	}
 
 	// wait for an upload file or other time-loading feature
 	public T waitLoadImg() {
-		GUtils.waitLoadImage(this.webElement, searchContext, 5L);
+		WaitUtils.waitLoadImage(this.webElement, searchContext, 5L);
 		return (T) this;
 	}
 
@@ -142,7 +143,7 @@ public abstract class BasePO<T> {
 			executor.executeScript("arguments[0].click();", webElement);
 			log.info("click by javascript : " + webElement);
 		}
-		GUtils.waitForPageToLoad();
+		WaitUtils.waitForPageToLoad();
 		return (T) this;
 	}
 
@@ -170,7 +171,7 @@ public abstract class BasePO<T> {
 
 	public T refresh() {
 		driverFunc.get().navigate().refresh();
-		GUtils.waitForPageToLoad();
+		WaitUtils.waitForPageToLoad();
 		return (T) this;
 	}
 
@@ -201,7 +202,7 @@ public abstract class BasePO<T> {
 		try {
 			this.webElement.sendKeys(text);
 		} catch (NullPointerException e) {
-			this.webElement = GUtils.waitForEnableStatusByfilter(locator, searchContext, predicatesElementList);
+			this.webElement = WaitUtils.waitForEnableStatusByfilter(locator, searchContext, predicatesElementList);
 			try {
 				this.webElement.sendKeys(text);
 			} catch (Exception error) {

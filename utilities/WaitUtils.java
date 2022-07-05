@@ -1,4 +1,4 @@
-package com.tribu.qaselenium.testframework.pagebase;
+package com.tribu.qaselenium.testframework.utilities;
 
 import java.time.Duration;
 import java.util.List;
@@ -20,7 +20,7 @@ import com.google.common.base.Supplier;
 import com.tribu.qaselenium.testframework.testbase.DriverFactory;
 import com.tribu.qaselenium.testframework.testbase.TestLoggerFactory;
 
-public class GUtils {
+public class WaitUtils {
 
 	protected static Logger log = TestLoggerFactory.getInstance().getLogger();
 	protected static Supplier<WebDriver> driverFunc = () -> DriverFactory.getInstance().getDriver();
