@@ -23,6 +23,7 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.Select;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.testng.asserts.SoftAssert;
 
@@ -31,6 +32,7 @@ import com.google.common.base.Supplier;
 import com.tribu.qaselenium.testframework.testbase.DriverFactory;
 import com.tribu.qaselenium.testframework.testbase.SoftAssertFactory;
 import com.tribu.qaselenium.testframework.testbase.TestLoggerFactory;
+import com.tribu.qaselenium.testframework.utilities.WaitUtils;
 
 public abstract class BasePO<T> {
 
@@ -39,7 +41,7 @@ public abstract class BasePO<T> {
 	private SearchContext searchContext; // Page title for switch to this page
 	protected String PTitle;
 	protected WebElement baseElement;
-	protected List<Predicate<WebElement>> predicatesElementList = new ArrayList<Predicate<WebElement>>();
+	private List<Predicate<WebElement>> predicatesElementList = new ArrayList<Predicate<WebElement>>();
 	protected Logger log = TestLoggerFactory.getInstance().getLogger();
 	protected Supplier<WebDriver> driverFunc = () -> DriverFactory.getInstance().getDriver();
 	protected Supplier<SoftAssert> softAssertSupplier = () -> SoftAssertFactory.getInstance().getSoftAssert();
@@ -66,7 +68,7 @@ public abstract class BasePO<T> {
 				searchContext = driverFunc.get();
 			}
 			this.locator = by;
-			webElement = GUtils.waitForVisibilityByfilter(locator, searchContext, predicatesElementList);
+			webElement = WaitUtils.waitForVisibilityByfilter(locator, searchContext, predicatesElementList);
 		}
 	}
 
@@ -76,7 +78,7 @@ public abstract class BasePO<T> {
 	}
 
 	public T waitForNotVisibility() {
-		Boolean isInvisible = GUtils.waitForInvisibilityByfilter(locator, searchContext, predicatesElementList);
+		Boolean isInvisible = WaitUtils.waitForInvisibilityByfilter(locator, searchContext, predicatesElementList);
 		if (isInvisible == true) {
 			this.webElement = null;
 		} else if (isInvisible == false) {
@@ -86,7 +88,7 @@ public abstract class BasePO<T> {
 	}
 
 	public T waitForNotPresence() {
-		Boolean isNotPresent = GUtils.waitForNotPresenceByfilter(locator, searchContext, predicatesElementList);
+		Boolean isNotPresent = WaitUtils.waitForNotPresenceByfilter(locator, searchContext, predicatesElementList);
 		if (isNotPresent == true) {
 			this.webElement = null;
 		} else if (isNotPresent == false) {
@@ -98,13 +100,13 @@ public abstract class BasePO<T> {
 
 	// wait for an upload file or other time-loading feature
 	public T waitForLoad() {
-		this.webElement = GUtils.waitForLoad(locator, searchContext, predicatesElementList, 15L);
+		this.webElement = WaitUtils.waitForLoad(locator, searchContext, predicatesElementList, 15L);
 		return (T) this;
 	}
 
 	// wait for an upload file or other time-loading feature
 	public T waitLoadImg() {
-		GUtils.waitLoadImage(this.webElement, searchContext, 5L);
+		WaitUtils.waitLoadImage(this.webElement, searchContext, 5L);
 		return (T) this;
 	}
 
@@ -139,9 +141,9 @@ public abstract class BasePO<T> {
 		} catch (Exception e) {
 			JavascriptExecutor executor = (JavascriptExecutor) driverFunc.get();
 			executor.executeScript("arguments[0].click();", webElement);
-			log.info("click por javascript : " + webElement);
+			log.info("click by javascript : " + webElement);
 		}
-		GUtils.waitForPageToLoad();
+		WaitUtils.waitForPageToLoad();
 		return (T) this;
 	}
 
@@ -169,7 +171,7 @@ public abstract class BasePO<T> {
 
 	public T refresh() {
 		driverFunc.get().navigate().refresh();
-		GUtils.waitForPageToLoad();
+		WaitUtils.waitForPageToLoad();
 		return (T) this;
 	}
 
@@ -199,12 +201,10 @@ public abstract class BasePO<T> {
 	public T type(String text) {
 		try {
 			this.webElement.sendKeys(text);
-		} catch (Exception e) {
-			List<Predicate<WebElement>> predicateList = new ArrayList<Predicate<WebElement>>();
-			this.webElement = GUtils.waitForEnableStatusByfilter(locator, searchContext, predicateList);
+		} catch (NullPointerException e) {
+			this.webElement = WaitUtils.waitForEnableStatusByfilter(locator, searchContext, predicatesElementList);
 			try {
 				this.webElement.sendKeys(text);
-				log.info("Element found only with isEnable filter");
 			} catch (Exception error) {
 				e.printStackTrace();
 			}
@@ -252,6 +252,12 @@ public abstract class BasePO<T> {
 		}
 		return (T) this;
 	}
+	
+	public T selectElement(String value) {
+		Select dropdown = new Select(this.webElement);
+		dropdown.selectByVisibleText(value);
+		return (T) this;
+	}
 
 	// slider element
 	public T waitForTextChange() {
@@ -285,7 +291,7 @@ public abstract class BasePO<T> {
 			Alert alert = wait.until(ExpectedConditions.alertIsPresent());
 			alert.accept();
 		} catch (Exception e) {
-			log.info(e);
+			e.printStackTrace();
 		}
 		return (T) this;
 	}

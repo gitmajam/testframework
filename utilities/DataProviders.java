@@ -1,4 +1,4 @@
-package com.tribu.qaselenium.testframework.testbase;
+package com.tribu.qaselenium.testframework.utilities;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -17,8 +17,12 @@ import org.testng.annotations.DataProvider;
 
 import com.opencsv.CSVReader;
 import com.opencsv.exceptions.CsvValidationException;
+import com.tribu.qaselenium.testframework.testbase.PropertiesFile;
 
-public class CsvDataProviders {
+public class DataProviders {
+	
+	protected String language = PropertiesFile.getProperties("language");
+	protected Map<String, String> dictionary = language != null ? csvTranslationsReader() : null;
 
 	/**
 	 * This method return an iterator of an array list containing all data sets
@@ -74,6 +78,37 @@ public class CsvDataProviders {
 					"Could not read next line in csv file" + path + "\n" + e.getStackTrace().toString());
 		}
 
+		return list.iterator();
+	}
+	
+	public static Iterator<Map<String, String>> csvReader(String pathname) {
+		List<Map<String, String>> list = new ArrayList<Map<String, String>>();
+		File file = new File(pathname);
+		try {
+			CSVReader reader = new CSVReader(new FileReader(file));
+			String[] keys = reader.readNext();
+			if (keys != null) {
+				String[] dataParts;
+				while ((dataParts = reader.readNext()) != null) {
+					String todo = dataParts[0];
+					if (todo.contentEquals("TRUE")) {
+						Map<String, String> testData = new HashMap<String, String>();
+						for (int i = 0; i < keys.length; i++) {
+							testData.put(keys[i], dataParts[i]);
+						}
+						list.add(testData);
+					}
+				}
+			}
+			reader.close();
+		} catch (FileNotFoundException e) {
+			throw new RuntimeException("File " + pathname + " was not found.\n" + e.getStackTrace().toString());
+		} catch (IOException e) {
+			throw new RuntimeException("Could not read " + pathname + " file.\n" + e.getStackTrace().toString());
+		} catch (CsvValidationException e) {
+			throw new RuntimeException(
+					"Could not read next line in csv file" + pathname + "\n" + e.getStackTrace().toString());
+		}
 		return list.iterator();
 	}
 
@@ -291,5 +326,33 @@ public class CsvDataProviders {
 
 		return list.iterator();
 	}
+	
+	
 
+	
+	public Map<String, String> csvTranslationsReader() {
+		Map<String, String> dictionary = new HashMap<String, String>();
+		String translationFile = this.language.contentEquals("es") ? "dictionaryEsEs.csv" : "dictionaryEsEn.csv";
+		String translationsPath = System.getProperty("user.dir") + File.separator + "src" + File.separator + "test"
+				+ File.separator + "resources" + File.separator + "providerFiles" + File.separator + translationFile;
+
+		File file = new File(translationsPath);
+		try {
+			CSVReader reader = new CSVReader(new FileReader(file));
+			String[] dataParts;
+			while ((dataParts = reader.readNext()) != null) {
+				dictionary.put(dataParts[0], dataParts[1]);
+			}
+			reader.close();
+		} catch (FileNotFoundException e) {
+			throw new RuntimeException("File " + translationsPath + " was not found.\n" + e.getStackTrace().toString());
+		} catch (IOException e) {
+			throw new RuntimeException(
+					"Could not read " + translationsPath + " file.\n" + e.getStackTrace().toString());
+		} catch (CsvValidationException e) {
+			throw new RuntimeException(
+					"Could not read next line in csv file" + translationsPath + "\n" + e.getStackTrace().toString());
+		}
+		return dictionary;
+	}
 }

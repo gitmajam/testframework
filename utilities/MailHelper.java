@@ -1,4 +1,4 @@
-package com.tribu.qaselenium.testframework.testbase;
+package com.tribu.qaselenium.testframework.utilities;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -13,6 +13,9 @@ import javax.mail.Store;
 import javax.mail.search.SubjectTerm;
 
 import org.apache.logging.log4j.Logger;
+
+import com.tribu.qaselenium.testframework.testbase.TestBase;
+import com.tribu.qaselenium.testframework.testbase.TestLoggerFactory;
 
 public class MailHelper extends TestBase {
 	protected Logger log = TestLoggerFactory.getInstance().getLogger();
