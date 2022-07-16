@@ -61,12 +61,12 @@ public class WaitUtils {
 	
 	//return a value diferent to null or timeout exception
 	public static WebElement waitForLoad(By locator, SearchContext searchContext,
-			List<Predicate<WebElement>> predicateList, Long... delays) {
-		Long timeOut = delays.length > 0 ? delays[0] : 3L;
+			List<Predicate<WebElement>> predicateList, Integer... delays) {
+		Integer timeOut = delays.length > 0 ? delays[0] : 3000;
 		WebElement element = null;
 		try {
 			Wait<SearchContext> wait = new FluentWait<SearchContext>(searchContext)
-					.withTimeout(Duration.ofMinutes(timeOut))
+					.withTimeout(Duration.ofSeconds(timeOut))
 					.pollingEvery(Duration.ofSeconds(5L))
 					.ignoring(NoSuchElementException.class, StaleElementReferenceException.class);
 

@@ -98,9 +98,14 @@ public abstract class BasePO<T> {
 		return (T) this;
 	}
 
-	// wait for an upload file or other time-loading feature
+	// wait for an upload file or other time-loading feature  in seconds
 	public T waitForLoad() {
-		this.webElement = WaitUtils.waitForLoad(locator, searchContext, predicatesElementList, 15L);
+		this.webElement = WaitUtils.waitForLoad(locator, searchContext, predicatesElementList, 300);
+		return (T) this;
+	}
+	
+	public T waitForLoad(Integer delay) {
+		this.webElement = WaitUtils.waitForLoad(locator, searchContext, predicatesElementList, delay);
 		return (T) this;
 	}
 
