@@ -1,44 +1,21 @@
 package com.tribu.qaselenium.testframework.utilities;
 
 import java.io.File;
-<<<<<<< HEAD
-import java.io.FileInputStream;
-=======
->>>>>>> 754e8cfd5eb81aeb615d6a1373f34c7278658734
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
-<<<<<<< HEAD
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-
-import org.apache.logging.log4j.Logger;
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.xssf.usermodel.XSSFSheet;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-=======
 import java.util.List;
 
 import org.apache.logging.log4j.Logger;
->>>>>>> 754e8cfd5eb81aeb615d6a1373f34c7278658734
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.testng.ITestContext;
 
-<<<<<<< HEAD
-import com.opencsv.CSVReader;
 import com.opencsv.CSVWriter;
-import com.opencsv.exceptions.CsvValidationException;
-=======
-import com.opencsv.CSVWriter;
->>>>>>> 754e8cfd5eb81aeb615d6a1373f34c7278658734
 
 public class DataWriters {
 	protected static Logger log;

@@ -25,11 +25,6 @@ import com.opencsv.CSVReader;
 import com.opencsv.CSVWriter;
 import com.opencsv.exceptions.CsvValidationException;
 
-<<<<<<< HEAD
-import jdk.internal.org.jline.utils.Log;
-
-=======
->>>>>>> 754e8cfd5eb81aeb615d6a1373f34c7278658734
 public class DataReaders {
 
 	/** csv readers **/
