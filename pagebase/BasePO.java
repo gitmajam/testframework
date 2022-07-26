@@ -57,7 +57,7 @@ public abstract class BasePO<T> {
 	protected void setWebElement(By by, Predicate<WebElement>... predicates) {
 		predicatesElementList.clear();
 		Collections.addAll(predicatesElementList, predicates);
-		if (!(webElement == null && by.toString().contains(" ./"))) {
+		if (!(webElement == null && baseElement == null && by.toString().contains(" ./"))) {
 			if (by.toString().contains(" ./") && baseElement == null) {
 				baseElement = webElement;
 				searchContext = webElement;
@@ -98,12 +98,12 @@ public abstract class BasePO<T> {
 		return (T) this;
 	}
 
-	// wait for an upload file or other time-loading feature  in seconds
+	// wait for an upload file or other time-loading feature in seconds
 	public T waitForLoad() {
 		this.webElement = WaitUtils.waitForLoad(locator, searchContext, predicatesElementList, 300);
 		return (T) this;
 	}
-	
+
 	public T waitForLoad(Integer delay) {
 		this.webElement = WaitUtils.waitForLoad(locator, searchContext, predicatesElementList, delay);
 		return (T) this;
@@ -257,7 +257,7 @@ public abstract class BasePO<T> {
 		}
 		return (T) this;
 	}
-	
+
 	public T selectElement(String value) {
 		Select dropdown = new Select(this.webElement);
 		dropdown.selectByVisibleText(value);
@@ -368,7 +368,7 @@ public abstract class BasePO<T> {
 	}
 
 	public T assertAll(String... resultText) {
-		String text = resultText.length > 0 ? resultText[0] : "";
+		String text = resultText.length > 0 ? resultText[0] : " ";
 		softAssertSupplier.get().assertAll(text);
 		return (T) this;
 	}
