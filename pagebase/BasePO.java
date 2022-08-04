@@ -76,6 +76,11 @@ public abstract class BasePO<T> {
 		this.webElement = element;
 		return (T) this;
 	}
+	
+	public T printWebElement() {
+		log.info("WebElement selected: " + this.webElement);
+		return (T) this;
+	}
 
 	public T waitForNotVisibility() {
 		Boolean isInvisible = WaitUtils.waitForInvisibilityByfilter(locator, searchContext, predicatesElementList);
