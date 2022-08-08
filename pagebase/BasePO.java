@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.BiConsumer;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.Logger;
@@ -76,7 +77,7 @@ public abstract class BasePO<T> {
 		this.webElement = element;
 		return (T) this;
 	}
-	
+
 	public T printWebElement() {
 		log.info("WebElement selected: " + this.webElement);
 		return (T) this;
@@ -333,6 +334,7 @@ public abstract class BasePO<T> {
 		return (T) this;
 	}
 
+	@Deprecated
 	public T assertExist(String... failText) {
 		String text = failText.length > 0 ? failText[0] : "";
 		String message = webElement != null ? "Element found: " + text : "Element was not found: " + text;
@@ -340,6 +342,7 @@ public abstract class BasePO<T> {
 		return (T) this;
 	}
 
+	@Deprecated
 	public T assertNotExist(String... failText) {
 		String text = failText.length > 0 ? failText[0] : "";
 		String message = webElement != null ? "Element found: " + text : "Element was not found: " + text;
@@ -364,11 +367,17 @@ public abstract class BasePO<T> {
 		return (T) this;
 	}
 
-	@Deprecated
-	public T assess(BiConsumer<Boolean, String> consumer, String... resultText) {
-		String text = resultText.length > 0 ? resultText[0] : "";
-		String message = webElement != null ? "Element found " + text : "Element was not found " + text;
-		consumer.accept(webElement != null, message + ", " + this.locator.toString());
+	public T assertString(Function<WebElement, String> function, String expected, String... resultText) {
+		String text = resultText.length > 0 ? resultText[0] + ", ": "";
+		softAssertSupplier.get().assertTrue(function.apply(webElement).contentEquals(expected),
+				text + "expected: " + expected + " but found: " + function.apply(webElement) + ", ");
+		return (T) this;
+	}
+	
+	public T assess(Predicate<WebElement> predicate, String... resultText) {
+		String text = resultText.length > 0 ? resultText[0] + ", ": "";
+		boolean eval = webElement != null? predicate.apply(webElement): false;
+		softAssertSupplier.get().assertTrue(eval,text);
 		return (T) this;
 	}
 
