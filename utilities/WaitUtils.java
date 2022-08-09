@@ -130,7 +130,7 @@ public class WaitUtils {
 			 * lambda function, verifies if the document.readyState is complete, has a
 			 * timeout of 30 seconds
 			 */
-			new WebDriverWait(driverFunc.get(), 30).until(webDriver -> ((JavascriptExecutor) webDriver)
+			new WebDriverWait(driverFunc.get(), 10).until(webDriver -> ((JavascriptExecutor) webDriver)
 					.executeScript("return document.readyState").equals("complete"));
 		} catch (Exception e) {
 			log.info("WaitForPageLoad timeout");
