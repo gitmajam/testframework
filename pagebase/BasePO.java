@@ -2,7 +2,6 @@ package com.tribu.qaselenium.testframework.pagebase;
 
 import java.io.File;
 import java.text.SimpleDateFormat;
-import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -343,6 +342,7 @@ public abstract class BasePO<T> {
 		return (T) this;
 	}
 
+	@Deprecated
 	public T assertNotExist(String... failText) {
 		String text = failText.length > 0 ? failText[0] : "";
 		String message = webElement != null ? "Element found: " + text : "Element was not found: " + text;
@@ -369,7 +369,7 @@ public abstract class BasePO<T> {
 
 	public T assertString(Function<WebElement, String> function, String expected, String... resultText) {
 		String text = resultText.length > 0 ? resultText[0] + ", ": "";
-		softAssertSupplier.get().assertTrue(function.apply(webElement).trim().contentEquals(expected),
+		softAssertSupplier.get().assertTrue(function.apply(webElement).contentEquals(expected),
 				text + "expected: " + expected + " but found: " + function.apply(webElement) + ", ");
 		return (T) this;
 	}
