@@ -2,6 +2,7 @@ package com.tribu.qaselenium.testframework.pagebase;
 
 import java.io.File;
 import java.text.SimpleDateFormat;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -273,7 +274,7 @@ public abstract class BasePO<T> {
 	// slider element
 	public T waitForTextChange() {
 		String currentText = webElement.getText().trim();
-		new WebDriverWait(driverFunc.get(), 20).until(
+		new WebDriverWait(driverFunc.get(), Duration.ofSeconds(20)).until(
 				ExpectedConditions.not(ExpectedConditions.textToBePresentInElementLocated(this.locator, currentText)));
 		return (T) this;
 	}
@@ -298,7 +299,7 @@ public abstract class BasePO<T> {
 
 	public T acceptAlert() {
 		try {
-			WebDriverWait wait = new WebDriverWait(driverFunc.get(), 5);
+			WebDriverWait wait = new WebDriverWait(driverFunc.get(), Duration.ofSeconds(5));
 			Alert alert = wait.until(ExpectedConditions.alertIsPresent());
 			alert.accept();
 		} catch (Exception e) {
@@ -433,7 +434,7 @@ public abstract class BasePO<T> {
 	// it returns the total video duration time
 	public double videoDuration() {
 		double duration = 0;
-		new WebDriverWait(driverFunc.get(), 10).until(webDriver -> ((JavascriptExecutor) webDriver)
+		new WebDriverWait(driverFunc.get(), Duration.ofSeconds(10)).until(webDriver -> ((JavascriptExecutor) webDriver)
 				.executeScript("return arguments[0].duration", webElement));
 		WebElement video = webElement;
 		JavascriptExecutor js = (JavascriptExecutor) driverFunc.get();
