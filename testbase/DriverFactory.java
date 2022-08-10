@@ -1,21 +1,47 @@
 package com.tribu.qaselenium.testframework.testbase;
 
-import org.apache.logging.log4j.Logger;
+import org.openqa.selenium.UnexpectedAlertBehaviour;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.firefox.FirefoxOptions;
+import org.openqa.selenium.remote.CapabilityType;
 
 import io.github.bonigarcia.wdm.WebDriverManager;
 
-public class BrowserDriverFactory {
+public class DriverFactory {
+	// singleton
+	private volatile static DriverFactory driverFactory = null;
+	private static int contador = 0; // test
 
+	// private constructor
+	private DriverFactory() {
+		// check point created instances 
+		contador = contador + 1;
+		System.out.println("*****driverFactory-counter***** = " + contador);
+	}
+
+	public static DriverFactory getInstance() {
+		if (driverFactory == null) {
+			synchronized (DriverFactory.class) {
+				if (driverFactory == null) {
+					driverFactory = new DriverFactory();
+				}
+			}
+		}
+		return driverFactory;
+	}
+	
 	private static ChromeOptions getChromeOptions() {
 		ChromeOptions options = new ChromeOptions();
-		options.addArguments("--disable-dev-shm-usage"); // overcome limited resource problems
-		options.addArguments("--no-sandbox");// Bypass OS security models
-		options.addArguments("--headless");
+		// this capability enter accept button by default in chrome pop-ups
+		options.setCapability(CapabilityType.UNEXPECTED_ALERT_BEHAVIOUR, UnexpectedAlertBehaviour.ACCEPT);
+		if (PropertiesFile.getProperties("headless").equals("true")) {
+			options.addArguments("--headless");
+			options.addArguments("--window-size=1200,1100");
+			options.addArguments("disable-gpu");
+		}
 		return options;
 	}
 
@@ -27,13 +53,12 @@ public class BrowserDriverFactory {
 
 	/**
 	 * static variable that relates an specific webdriver instance with a thread, it
-	 * is like a dictionary
+	 * is like a dictionary.
 	 */
 
 	private static ThreadLocal<WebDriver> driver = new ThreadLocal<WebDriver>();
-	// static WebDriver driver;
 
-	public void createDriver(String browser, Logger log) {
+	public void createDriver(String browser) {
 		browser.toLowerCase();
 
 		switch (browser) {
@@ -53,11 +78,11 @@ public class BrowserDriverFactory {
 			driver.set(new ChromeDriver(getChromeOptions()));
 			break;
 		}
-		log.info(driver.get().hashCode() + " Factory crea driver");
 	}
 
 	/** this method returns the driver related with the current thread */
 	public WebDriver getDriver() {
+
 		return driver.get();
 	}
 }
