@@ -383,7 +383,6 @@ public abstract class BasePO<T> {
 		}catch (NullPointerException e) {
 			eval = false;
 		}
-		softAssertSupplier.get().assertTrue(eval,text);
 		return (T) this;
 	}
 
