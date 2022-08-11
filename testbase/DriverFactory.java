@@ -40,7 +40,6 @@ public class DriverFactory {
 		if (PropertiesFile.getProperties("headless").equals("true")) {
 			options.addArguments("--headless");
 			options.addArguments("--window-size=1200,1100");
-			options.addArguments("disable-gpu");
 		}
 		return options;
 	}

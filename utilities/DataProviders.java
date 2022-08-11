@@ -37,6 +37,49 @@ public class DataProviders {
 	 * 
 	 * if the parallel argument is false then the tests are run sequentially
 	 */
+
+	@DataProvider(name = "csvReaderParallel", parallel = true)
+	public static Iterator<Object[]> csvReaderParallel(Method method) {
+		String path = null;
+		//  accesing to classfield from caller class by reflection
+		try {
+			Field field = method.getDeclaringClass().getDeclaredField("dataProviderFilePath");
+			Object testObj = method.getDeclaringClass().getDeclaredConstructor().newInstance();
+			path = (String) field.get(testObj);
+		} catch (Exception e1) {
+			e1.printStackTrace();
+		}
+		
+		List<Object[]> list = new ArrayList<Object[]>();
+		File file = new File(path);
+		try {
+			CSVReader reader = new CSVReader(new FileReader(file));
+			String[] keys = reader.readNext();
+			if (keys != null) {
+				String[] dataParts;
+				while ((dataParts = reader.readNext()) != null) {
+					String todo = dataParts[0];
+					if (todo.contentEquals("TRUE")) {
+						Map<String, String> testData = new HashMap<String, String>();
+						for (int i = 0; i < keys.length; i++) {
+							testData.put(keys[i], dataParts[i]);
+						}
+						list.add(new Object[] { testData });
+					}
+				}
+			}
+			reader.close();
+		} catch (FileNotFoundException e) {
+			throw new RuntimeException("File " + path + " was not found.\n" + e.getStackTrace().toString());
+		} catch (IOException e) {
+			throw new RuntimeException("Could not read " + path + " file.\n" + e.getStackTrace().toString());
+		} catch (CsvValidationException e) {
+			throw new RuntimeException(
+					"Could not read next line in csv file" + path + "\n" + e.getStackTrace().toString());
+		}
+
+		return list.iterator();
+	}
 	
 	@DataProvider(name = "csvReader", parallel = false)
 	public static Iterator<Object[]> csvReader(Method method) {
