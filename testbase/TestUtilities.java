@@ -27,15 +27,12 @@ public class TestUtilities {
 	protected String testName;
 	protected String testMethodName;
 	protected Logger log;
-	protected String dataProviderFilePath;
+	protected static String resourcesPath = System.getProperty("user.dir") + File.separator + "src" + File.separator + "test"
+			+ File.separator + "resources" + File.separator;
 	protected String language = PropertiesFile.getProperties("language");
 	protected Map<String, String> dictionary = language != null ? DataReaders.csvDictionaryReader(language) : null;
 	protected Supplier<WebDriver> driverFunc = () -> DriverFactory.getInstance().getDriver();
 	protected Supplier<SoftAssert> softAssertSupplier = () -> SoftAssertFactory.getInstance().getSoftAssert();
-
-	public String getDataProviderFilePath() {
-		return dataProviderFilePath;
-	}
 
 	// Static Sleep
 	protected void sleep(long millis) {

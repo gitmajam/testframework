@@ -377,12 +377,13 @@ public abstract class BasePO<T> {
 	
 	public T assess(Predicate<WebElement> predicate, String... resultText) {
 		String text = resultText.length > 0 ? resultText[0] + ", ": "";
-		boolean eval;
+		boolean eval = false;
 		try {
 			eval = predicate.apply(webElement);
 		}catch (NullPointerException e) {
 			eval = false;
 		}
+		softAssertSupplier.get().assertTrue(eval,text);
 		return (T) this;
 	}
 
