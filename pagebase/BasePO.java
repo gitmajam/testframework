@@ -40,8 +40,8 @@ public abstract class BasePO<T> {
 
 	protected By locator; // locator work variable
 	private WebElement webElement; // last selected element
-	private SearchContext searchContext; // Page title for switch to this page
-	protected String PTitle;
+	private SearchContext searchContext;
+	protected String PTitle; // Page title for switch to this page
 	protected WebElement baseElement;
 	private List<Predicate<WebElement>> predicatesElementList = new ArrayList<Predicate<WebElement>>();
 	protected Logger log = TestLoggerFactory.getInstance().getLogger();
@@ -80,7 +80,7 @@ public abstract class BasePO<T> {
 	}
 
 	public T printWebElement() {
-		log.info("WebElement selected: " + this.webElement);
+		log.info("WebElement selected: " + this.webElement.toString());
 		return (T) this;
 	}
 
